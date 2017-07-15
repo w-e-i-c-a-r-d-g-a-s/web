@@ -77,6 +77,11 @@ https://drive.google.com/drive/folders/0B-k36n5IvAUKNTlLb3RQZ09XNVk
 
 etherSetteingの中身はgethの設定により適宜書き換えるようにしてください。
 
+## solc実行
+```
+$ npm run solc
+```
+
 ## Development
 
 フロント側のビルドシステムを起動
