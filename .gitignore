@@ -1,0 +1,7 @@
+node_modules
+/serviceAccountKey.json
+/etherSetting.json
+/front/scripts/firebase.config.js
+/sol/dist
+/serviceAccountKey.json
+*.log
