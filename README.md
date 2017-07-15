@@ -3,7 +3,7 @@
 
 ### Ethereum RPCの起動
 
-#### RPCをgethで実行する場合
+#### a. RPCをgethで実行する場合
 
 ```
 $ geth --port 30001 --networkid "3981" \
@@ -13,7 +13,7 @@ $ geth --port 30001 --networkid "3981" \
 
 のようなコマンドで、gethを起動する
 
-#### RPCをtestrpcで実行する場合
+#### b. RPCをtestrpcで実行する場合
 
 <!--
 [eth-testrpc](https://github.com/pipermerriam/eth-testrpc) をpipでインストール
@@ -65,6 +65,18 @@ npm install -g nodemon yarn
 $ yarn install
 ```
 
+## 設定ファイルを配置
+
+必要なファイルを
+https://drive.google.com/drive/folders/0B-k36n5IvAUKNTlLb3RQZ09XNVk
+からダウンロードし、配置します。
+
+* firebase.config.js → /front/scripts/ 直下
+* etherSetting.json → プロジェクトのルート
+* serviceAccountKey.json → プロジェクトのルート
+
+etherSetteingの中身はgethの設定により適宜書き換えるようにしてください。
+
 ## Development
 
 フロント側のビルドシステムを起動
@@ -73,6 +85,7 @@ $ yarn install
 $ npm run front
 ```
 
+（別のターミナルウィンドウで）  
 サーバ側のビルドシステムを起動
 
 ```
