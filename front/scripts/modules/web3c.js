@@ -16,12 +16,35 @@ const CardMasterBIN = `0x${require('../../../sol/dist/CardMaster.bin')}`;
 const CardABI = JSON.parse(require('../../../sol/dist/Card.abi'));
 
 // 定数
-// const CardMasterAddress = '0xbe4d25adf719ba3fedfdbd8ad86dc710b035b21d';
-const CardMasterAddress = '0x9199a78d27c9eb38f7ad659ad1bb3e08892e1c77';
+const CardMasterAddress = '0xe97865b467c993d58dd3d7eb6afb74597ddbacad';
 const CardMasterContract = web3.eth.contract(CardMasterABI);
 const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
 
 const CardContract = web3.eth.contract(CardABI);
+
+var filter = web3.eth.filter('latest');
+// watch for changes
+filter.watch(function(error, result){
+  if (error) {
+    console.alert(error);
+    return;
+  }
+  // console.log(result);
+  const block = web3.eth.getBlock(result, true);
+  if(block.transactions.length > 0){
+    block.transactions.forEach((tx, i) => {
+      var receipt = web3.eth.getTransactionReceipt(tx.hash);
+      // console.log(tx, receipt);
+      // 注 指定したgasとgasUsedがドンピシャだと成功したことになっている
+      if(receipt.gasUsed === tx.gas){
+        console.error(`Transaction failed (out of gas, thrown) ${receipt.gasUsed}`);
+        return;
+      }
+      console.log(`🔨mined! (${i}) => blockNumber: ${tx.blockNumber}, from: ${tx.from}, to: ${tx.to}, value: ${tx.value.toString(10)}, gasUsed: ${receipt.gasUsed}, gas: ${tx.gas}`);
+    });
+  }
+});
+
 
 const web3c = {
   web3,
@@ -48,8 +71,113 @@ const web3c = {
       console.log('login error');
       cb();
     });
-  }
+  },
 
+  // カードマスターを登録
+  deployCardMaster(account) {
+    var card_sol_cardmaster = CardMasterContract.new({
+      from: account,
+      data: CardMasterBIN,
+      gas: '4700000'
+    }, function (e, contract){
+      if(e){
+        throw new Error(e);
+      }
+      if (typeof contract.address !== 'undefined') {
+        console.log('Contract mined! ⛏ address: ' + contract.address + ' transactionHash: ' + contract.transactionHash);
+      }
+    })
+  },
+
+  // カードを登録
+  addCard(account, name, issued, gas) {
+    web3.eth.defaultAccount = account;
+    // const tx = CardMasterInstance.addCard(name, issued, { gas: 542564 }) // 初回
+    // const tx = CardMasterInstance.addCard(name, issued, { gas: 527564 }) // ２回目
+    const tx = CardMasterInstance.addCard(name, issued, { gas }) // ２回目
+    console.log(`transaction send! => ${tx}`);
+  },
+
+  // カードを取得
+  getCards(account){
+    const cards = CardMasterInstance.getCardAddressList().map((address) => {
+      const card = CardContract.at(address);
+      return {
+        address,
+        name: web3.toAscii(card.name()),
+        author: card.author(),
+        issued: card.issued().toString(10)
+      }
+    });
+    return account ? cards.filter((c) => c.author === account) : cards;
+  },
+
+  // カード情報を取得
+  getCard(cardAddress){
+    const card = CardContract.at(cardAddress);
+    const sellInfo = this.getSellInfo(card);
+    const owners = card.getOwnerList().map((address) => {
+      return { address, num: card.owns(address).toString(10) };
+    });
+
+    return {
+      address: card.address,
+      name: web3.toAscii(card.name()),
+      author: card.author(),
+      issued: card.issued().toString(10),
+      owners,
+      sellInfo
+    }
+  },
+
+  // 売る
+  sell: (quantity, price, cardAddress, account, gas) => {
+    // console.log('sell', quantity, price, cardAddress, account, {gas});
+    web3.eth.defaultAccount = account;
+    const card = CardContract.at(cardAddress);
+    const tx = card.sellOrder(quantity, price, { gas });
+
+    console.log(`transaction send! => ${tx}`);
+  },
+
+  // 買う
+  buy: (account, cardAddress, sellInfoId, gas, ether = 0) => {
+    console.log(account, cardAddress, sellInfoId, gas, ether);
+    // 選択したsellデータ
+    web3.eth.defaultAccount = account;
+    const card = CardContract.at(cardAddress);
+    const value = web3.toWei(ether, 'ether');
+    const tx = card.buy(sellInfoId, { gas, value });
+    console.log(tx);
+  },
+
+  refreshSellInfo(cardAddress){
+    const card = CardContract.at(cardAddress);
+    const sellInfo = this.getSellInfo(card);
+    return sellInfo;
+  },
+
+  getSellInfo(card){
+    const sellInfo = [];
+    for (let i = 0, len = card.sellInfosLength().toNumber(); i < len; i++) {
+      const [from, quantity, price, active] = card.sellInfos(i);
+      if(!active){
+        continue;
+      }
+      sellInfo.push({
+        from,
+        quantity: quantity.toNumber(),
+        price: price.toNumber(),
+        priceEth: web3.fromWei(price, 'ether').toNumber(),
+        totalPrice: quantity * price,
+        totalPriceEth: quantity * web3.fromWei(price, 'ether'),
+        active
+      });
+    }
+
+    console.log(sellInfo);
+    return sellInfo;
+  }
 };
 
 const createJSONdata = (method, params) => ({

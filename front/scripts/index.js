@@ -6,6 +6,11 @@ import '../styles/app.css';
 import './tags/app.tag';
 import './tags/navbar.tag';
 import './tags/login.tag';
+import './tags/card.tag';
+import './tags/card-detail.tag';
+import './tags/containers/home.tag';
+import './tags/containers/detail.tag';
+
 // modules
 import firebase from './firebase'
 import web3c from './modules/web3c'

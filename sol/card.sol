@@ -76,7 +76,7 @@ contract Card {
     SellInfo[] public sellInfos;
 
     // Sellデータを作成
-    function sell(uint quantity, uint price){
+    function sellOrder(uint quantity, uint price){
         sellInfos.push(SellInfo(msg.sender, quantity, price, true));
     }
 
@@ -134,8 +134,8 @@ contract Card {
     BuyOrder[] public buyOrders;
 
     /**
-    * 買い注文作成
-    */
+     * 買い注文作成
+     */
     function createBuyOrder(uint16 _quantity, uint _etherPrice) payable {
         //TODO:本番ではetherではなくweiを引数に渡す
         uint weiPrice = _etherPrice * 1 ether;
@@ -146,8 +146,8 @@ contract Card {
     }
 
     /**
-    * 買い注文に対して売る.
-    */
+     * 買い注文に対して売る.
+     */
     function sell(uint idx, uint16 quantity) payable {
         address seller = msg.sender;
         address buyer = buyOrders[idx].buyer();
@@ -179,8 +179,8 @@ contract BuyOrder {
     }
 
     /**
-    * 販売.
-    */
+     * 販売.
+     */
     function sell(address seller, uint16 _quantity) payable {
         require(!ended);
         //提示カード枚数以下
@@ -196,9 +196,9 @@ contract BuyOrder {
     }
 
     /**
-    * オークション終了.
-    * 作成者のみ終了可能.
-        */
+     * オークション終了.
+     * 作成者のみ終了可能.
+     */
     function close() {
         require(msg.sender == buyer);
         buyer.transfer(value);
