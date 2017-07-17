@@ -15,6 +15,7 @@ app
     setting(if="{page === 'setting'}")
     detail(
       if="{page === 'detail'}"
+      user="{user}"
       card="{card}"
       sell="{sell}"
       select-sell="{selectSell}"

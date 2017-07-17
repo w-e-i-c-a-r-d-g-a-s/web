@@ -60,6 +60,7 @@ detail
                     value="{i}"
                     checked="{o.selected}"
                     onchange="{parent.opts.selectSell}"
+                    if="{o.from !== parent.opts.user.etherAccount.toLowerCase()}"
                   )
                 td {i}
                 td
@@ -70,7 +71,7 @@ detail
                   br
                   | ({o.price} Wei)
                 td {o.totalPriceEth} Ether
-            .column.col-12
+            .column.col-12(if="{opts.card.sellInfo.length > 0}")
               button.btn.btn-sm.btn-primary(onclick="{opts.buy}") Buy
         .columns
           .column.col-4
@@ -116,6 +117,7 @@ detail
                     value="{i}"
                     checked="{o.selected}"
                     onchange="{parent.opts.selectSell}"
+                    if="{o.buyer !== parent.opts.user.etherAccount.toLowerCase()}"
                   )
                 td {i}
                 td
@@ -126,7 +128,7 @@ detail
                   br
                   | ({o.price} Wei)
                 td {o.totalPriceEth} Ether
-            .columns
+            .columns(if="{opts.card.buyOrderInfo.length > 0}")
               .column.col-11
                 label.form-label(for="input-buyorder-quantity") quantity
                 input#input-buyorder-quantity.form-input.input-sm(
