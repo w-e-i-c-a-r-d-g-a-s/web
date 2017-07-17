@@ -25,7 +25,12 @@ app
       card="{card}"
       sell="{sell}"
       select-sell="{selectSell}"
+      select-buyorder= "{selectBuyOrder}"
       refresh-sell-info="{refreshSellInfo}"
+      buy="{buy}"
+      buy-order="{buyOrder}"
+      refresh-buyorder-info="{refreshBuyOrderInfo}"
+      accept-bid="{acceptBid}"
     )
 
 
@@ -114,7 +119,7 @@ app
     unlock(){
       const pw = this.refs.password;
       const _pw = pw.value;
-      this.web3Controller.unlock(
+      this.web3c.unlock(
         this.user.etherAccount,
         _pw,
         () => {
@@ -124,7 +129,7 @@ app
     }
 
     sell(quantity, wei){
-      const gas = 123823;
+      const gas = 223823;
       this.web3c.sell(
         quantity,
         wei,
@@ -138,9 +143,57 @@ app
       this.sellInfoId = e.item.i;
     }
 
+    selectBuyOrder(e){
+      this.buyOrderId = e.item.i;
+    }
+
     refreshSellInfo(){
       this.card = assign({}, this.card, {
         sellInfo: this.web3c.refreshSellInfo(this.card.address)
       });
       this.update();
+    }
+
+    refreshBuyOrderInfo(){
+      this.card = assign({}, this.card, {
+        buyOrderInfo: this.web3c.refreshBuyOrderInfo(this.card.address)
+      });
+      this.update();
+    }
+
+    buy(){
+      const selectedSellOrder = this.card.sellInfo[this.sellInfoId];
+      const gas = 77911;
+      this.web3c.buy(
+        this.user.etherAccount,
+        this.card.address,
+        this.sellInfoId,
+        gas,
+        selectedSellOrder.totalPriceEth
+      );
+    }
+
+    // TODO priceはEtherが入っている（本当はwei)
+    buyOrder(quantity, price){
+      // console.log(quantity, price);
+      const gas = 400000;
+      this.web3c.buyOrder(
+        this.user.etherAccount,
+        this.card.address,
+        quantity,
+        price,
+        gas
+      );
+    }
+
+    acceptBid(quantity){
+      console.log('accept', quantity);
+      const gas = 223823;
+      this.web3c.acceptBid(
+        this.user.etherAccount,
+        this.card.address,
+        this.buyOrderId,
+        quantity,
+        gas
+      );
     }

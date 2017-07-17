@@ -14,13 +14,15 @@ if (typeof web3 !== 'undefined') {
 const CardMasterABI = JSON.parse(require('../../../sol/dist/CardMaster.abi'));
 const CardMasterBIN = `0x${require('../../../sol/dist/CardMaster.bin')}`;
 const CardABI = JSON.parse(require('../../../sol/dist/Card.abi'));
+const BuyOrderABI = JSON.parse(require('../../../sol/dist/BuyOrder.abi'));
 
 // 定数
-const CardMasterAddress = '0xe97865b467c993d58dd3d7eb6afb74597ddbacad';
+const CardMasterAddress = '0x50bb84493b63b1e68fdb3bf28db05c221e19949e';
 const CardMasterContract = web3.eth.contract(CardMasterABI);
 const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
 
 const CardContract = web3.eth.contract(CardABI);
+const BuyOrderContract = web3.eth.contract(BuyOrderABI);
 
 var filter = web3.eth.filter('latest');
 // watch for changes
@@ -116,6 +118,7 @@ const web3c = {
   getCard(cardAddress){
     const card = CardContract.at(cardAddress);
     const sellInfo = this.getSellInfo(card);
+    const buyOrderInfo = this.getBuyOrderInfo(card);
     const owners = card.getOwnerList().map((address) => {
       return { address, num: card.owns(address).toString(10) };
     });
@@ -126,7 +129,8 @@ const web3c = {
       author: card.author(),
       issued: card.issued().toString(10),
       owners,
-      sellInfo
+      sellInfo,
+      buyOrderInfo
     }
   },
 
@@ -177,7 +181,55 @@ const web3c = {
 
     console.log(sellInfo);
     return sellInfo;
+  },
+
+  buyOrder(account, cardAddress, quantity, price, gas,){
+    console.log(account, cardAddress, quantity, gas, price);
+    // 選択したsellデータ
+    web3.eth.defaultAccount = account;
+    const card = CardContract.at(cardAddress);
+    const value = quantity * web3.toWei(price, 'ether');
+    const tx = card.createBuyOrder(quantity, price, { gas, value });
+    console.log(tx);
+  },
+
+  /**
+   * 買い注文を取得
+   * @param {object} card
+   */
+  getBuyOrderInfo(card){
+    const buyOrderInfo = [];
+    for (let i = 0, len = card.getBuyOrdersCount().toNumber(); i < len; i++) {
+      const buyOrder = BuyOrderContract.at(card.buyOrders(i));
+      if(!buyOrder.ended()){
+        buyOrderInfo.push({
+          buyer: buyOrder.buyer(),
+          totalPrice: buyOrder.value().toNumber(), // トータル wei
+          totalPriceEth: web3.fromWei(buyOrder.value(), 'ether').toNumber(),
+          quantity: buyOrder.quantity().toNumber(),
+          price: buyOrder.price().toNumber(), // 単価 wei
+          priceEth:web3.fromWei(buyOrder.price(), 'ether').toNumber()
+        });
+      }
+    }
+    return buyOrderInfo;
+  },
+
+  refreshBuyOrderInfo(cardAddress){
+    const card = CardContract.at(cardAddress);
+    return this.getBuyOrderInfo(card);
+  },
+
+  acceptBid(account, cardAddress, bidIndex, quantity, gas){
+    web3.eth.defaultAccount = account;
+    const card = CardContract.at(cardAddress);
+    const buyOrder = BuyOrderContract.at(card.buyOrders(bidIndex));
+    const value = quantity * buyOrder.price().toNumber();
+    console.log(bidIndex, quantity, { gas, value });
+    const tx = card.sell(bidIndex, quantity, { gas, value });
+    console.log(tx);
   }
+
 };
 
 const createJSONdata = (method, params) => ({

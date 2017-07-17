@@ -107,25 +107,27 @@ contract Card {
         uint quantity = s.quantity;
         // uint price = s.price;
 
-        bool hasOwn = false;
-        // 既にオーナーかどうか（もっといい方法ないかな？）
-        for(uint i; i < addressList.length; i++){
-            if(addressList[i] == to){
-                hasOwn = true;
-            }
-        }
-        if(!hasOwn){
+        bool alreadyOwner = isAlreadyOwner(to);
+
+        if(!alreadyOwner){
             // 初オーナー
             addressList.push(to);
-            owns[from] -= quantity;
-            owns[to] = quantity;
-        }else{
-            // 既にオーナー
-            owns[from] -= quantity;
-            owns[to] += quantity;
         }
+        owns[from] -= quantity;
+        owns[to] += quantity;
         s.active = false;
         s.from.transfer(this.balance);
+    }
+
+    function isAlreadyOwner(address addr) returns (bool){
+        bool isAlready = false;
+        // 既にオーナーかどうか（もっといい方法ないかな？）
+        for(uint i; i < addressList.length; i++){
+            if(addressList[i] == addr){
+                isAlready = true;
+            }
+        }
+        return isAlready;
     }
 
     /**
@@ -134,8 +136,15 @@ contract Card {
     BuyOrder[] public buyOrders;
 
     /**
-     * 買い注文作成
-     */
+    *  買い注文リストの要素数を返す
+    */
+    function getBuyOrdersCount() constant returns (uint){
+        return buyOrders.length;
+    }
+
+    /**
+    * 買い注文作成
+    */
     function createBuyOrder(uint16 _quantity, uint _etherPrice) payable {
         //TODO:本番ではetherではなくweiを引数に渡す
         uint weiPrice = _etherPrice * 1 ether;
@@ -146,8 +155,8 @@ contract Card {
     }
 
     /**
-     * 買い注文に対して売る.
-     */
+    * 買い注文に対して売る.
+    */
     function sell(uint idx, uint16 quantity) payable {
         address seller = msg.sender;
         address buyer = buyOrders[idx].buyer();
@@ -155,6 +164,11 @@ contract Card {
         buyOrders[idx].sell(seller, quantity);
         owns[seller] = owns[seller] - quantity;
         owns[buyer] = owns[buyer] + quantity;
+        bool alreadyOwner = isAlreadyOwner(buyer);
+        if(!alreadyOwner){
+            // 初オーナー
+            addressList.push(buyer);
+        }
     }
 }
 
@@ -179,8 +193,8 @@ contract BuyOrder {
     }
 
     /**
-     * 販売.
-     */
+    * 販売.
+    */
     function sell(address seller, uint16 _quantity) payable {
         require(!ended);
         //提示カード枚数以下
@@ -188,6 +202,7 @@ contract BuyOrder {
         //送付
         seller.transfer(price * _quantity);
         value = value - price * _quantity;
+        quantity -= _quantity;
 
         //TODO:綺麗に割り切れない場合の救済
         if(value == 0){
@@ -196,9 +211,9 @@ contract BuyOrder {
     }
 
     /**
-     * オークション終了.
-     * 作成者のみ終了可能.
-     */
+    * オークション終了.
+    * 作成者のみ終了可能.
+        */
     function close() {
         require(msg.sender == buyer);
         buyer.transfer(value);

@@ -1,9 +1,24 @@
 detail
   .container.page.page-detail
     .columns
-      .column.col-3.text-center
+      .column.col-3
         card-detail(card="{opts.card}")
-        p.text-break.text-ellipsis.addr author: {opts.card.author}
+        .panel
+          .panel-header
+            .panel-title Card Owners
+          .panel-body
+            span.block author:
+            span.text-break.inline-block.text-ellipsis.addr {opts.card.author}
+            table.table.table-striped.table-hover
+              tr
+                th account
+                th num
+              tr(each="{o in opts.card.owners}")
+                td
+                  span.inline-block.text-ellipsis.addr {o.address}
+                td {o.num}
+          .panel-footer
+
       .column.col-9
         .columns
           .column.col-4
@@ -21,7 +36,7 @@ detail
                       span.input-group-addon.addon-sm Ether
                     label.form-label
                     .input-group
-                      input#input-price.form-input.input-sm(type="text" disabled ref="wei" value="{new Intl.NumberFormat().format(wei)}")
+                      input.form-input.input-sm(type="text" disabled ref="wei" value="{new Intl.NumberFormat().format(wei)}")
                       span.input-group-addon.addon-sm Wei
               .panel-footer
                 button.btn.btn-primary.btn-sm(onclick="{sell}") Sell
@@ -57,10 +72,77 @@ detail
                 td {o.totalPriceEth} Ether
             .column.col-12
               button.btn.btn-sm.btn-primary(onclick="{opts.buy}") Buy
-
+        .columns
+          .column.col-4
+            .panel
+              .panel-header
+                .panel-title Buy Order
+              .panel-body
+                form
+                  .form-group
+                    label.form-label(for="input-buy-quantity") quantity
+                    input#input-buy-quantity.form-input.input-sm(
+                      type="number" placeholder="" ref="buyQuantity"
+                    )
+                    label.form-label(for="input-buy-price") price(eth)
+                    .input-group
+                      input#input-buy-price.form-input.input-sm(type="text" placeholder="" oninput="{changePriceBuy}" ref="buyPrice")
+                      span.input-group-addon.addon-sm Ether
+                    label.form-label
+                    .input-group
+                      input.form-input.input-sm(
+                        type="text" disabled ref="buyWei" value="{new Intl.NumberFormat().format(buyWei)}"
+                      )
+                      span.input-group-addon.addon-sm Wei
+              .panel-footer
+                button.btn.btn-primary.btn-sm(onclick="{buyOrder}") BuyOrder
+          .column.col-8
+            h5.inline-block.text-normal BuyOrder Info
+            button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshBuyorderInfo}")
+              i.icon.icon-refresh
+            table.table.table-striped.table-hover
+              tr
+                th
+                th id
+                th buyer
+                th quantity
+                th price
+                th total price
+              tr(each="{o, i in opts.card.buyOrderInfo}" onclick="{selectBuyOrderRow}")
+                td
+                  input(
+                    type="radio"
+                    name="sell"
+                    value="{i}"
+                    checked="{o.selected}"
+                    onchange="{parent.opts.selectSell}"
+                  )
+                td {i}
+                td
+                  span.inline-block.text-ellipsis.addr {o.buyer}
+                td {o.quantity}
+                td
+                  | {o.priceEth} Ether
+                  br
+                  | ({o.price} Wei)
+                td {o.totalPriceEth} Ether
+            .columns
+              .column.col-11
+                label.form-label(for="input-buyorder-quantity") quantity
+                input#input-buyorder-quantity.form-input.input-sm(
+                  type="number" placeholder="" ref="buyOrderQuantity"
+                )
+              .column.col-1
+                label.form-label &nbsp;
+                button.btn.btn-sm.btn-primary(onclick="{acceptBid}") Sell
   script.
     changePrice(e){
       this.wei = this.web3c.web3.toWei(e.target.value, 'ether')
+    }
+
+    changePriceBuy(e){
+      this.buyEther = e.target.value;
+      this.buyWei = this.web3c.web3.toWei(e.target.value, 'ether')
     }
 
     sell(e){
@@ -73,4 +155,23 @@ detail
       this.opts.card.sellInfo.map((s, i) => s.selected = i === e.item.i);
       this.opts.selectSell(e);
       this.update();
+    }
+
+    selectBuyOrderRow(e){
+      this.opts.card.buyOrderInfo.map((s, i) => s.selected = i === e.item.i);
+      this.opts.selectBuyorder(e);
+      this.update();
+    }
+
+    buyOrder(){
+      const { buyQuantity } = this.refs;
+      if(buyQuantity.value && this.buyEther && this.buyEther > 0){
+        // console.log(buyQuantity.value, this.buyEther);
+        this.opts.buyOrder(buyQuantity.value, this.buyEther);
+      }
+    }
+
+    acceptBid(){
+      const { buyOrderQuantity } = this.refs;
+      this.opts.acceptBid(buyOrderQuantity.value);
     }

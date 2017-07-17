@@ -1,11 +1,13 @@
 login
   .loading(if="{isInitialLoading}")
 
-  div(if="{!isInitialLoading}")
+  .container(if="{!isInitialLoading}")
     .columns(if="{!isLoggedIn}")
-      p login page
-      a.btn(href="#" onclick="{authTwitter}") Sign in with Twitter
-      a.btn(href="#" onclick="{authFacebook}") Sign in with Facebook
+      .column.col-2.centered.text-center
+        h5 Login
+        a.btn.btn-block(href="#" onclick="{authTwitter}") Sign in with Twitter
+        .divider.text-center(data-content="OR")
+        a.btn.btn-block(href="#" onclick="{authFacebook}") Sign in with Facebook
 
     .columns(if="{isLoggedIn && !hasEthAccount}")
       .column.col-6
