@@ -1,25 +1,18 @@
 app
   div(if="{isLoggedIn}")
     navbar(user="{user}" logout="{logout}" go="{go}")
-    .page.home(if="{page === 'home'}")
-      h4 Home
-      card(each="{cards}" go-detail="{goDetail}")
-
-    .page.home(if="{page === 'mypage'}")
-      h4 Mypage
-    .page.home(if="{page === 'upload'}")
-      h4 Upload
-      a.btn(onclick="{addCard}") カードを登録
-    .page.home(if="{page === 'setting'}")
-      h4 Setting
-      button.btn(onclick="{deployCardMaster}") Deploy Cardmaster
-      button.btn(onclick="{downloadKS}") keyStoreをダウンロード
-      hr
-      div
-        p unlockをテスト
-        label パスワード
-        input(type="password" ref="password")
-        a.btn(onclick="{unlock}") unlock
+    home(
+      if="{page === 'home'}"
+      cards="{cards}"
+      go-detail="{goDetail}"
+    )
+    mypage(if="{page === 'mypage'}")
+    upload(
+      if="{page === 'upload'}"
+      add-card="{addCard}"
+    )
+    admin(if="{page === 'admin'}" deploy-card-master="{deployCardMaster}")
+    setting(if="{page === 'setting'}")
     detail(
       if="{page === 'detail'}"
       card="{card}"
@@ -76,8 +69,9 @@ app
     /**
      * カードを登録
      */
-    addCard(){
-      this.web3c.addCard(this.user.etherAccount, 'Good Morning', 100, 1399659);
+    addCard(name, totalSupply){
+      const gas = 1399659;
+      this.web3c.addCard(this.user.etherAccount, name, totalSupply, gas);
     }
 
     /**

@@ -1,5 +1,5 @@
 card
-  .card.td-card(onclick="{parent.goDetail}")
+  .card.inline-block.td-card(onclick="{parent.opts.goDetail}")
     .card-image
       img.img-responsive(src='http://kryptomoney.com/wp-content/uploads/2017/06/ethereum-logo.png')
       .card-header

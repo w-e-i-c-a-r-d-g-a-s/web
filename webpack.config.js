@@ -41,10 +41,13 @@ module.exports = {
         test: /\.tag$/,
         enforce: "pre",
         exclude: [/node_modules/],
-        loader: 'riotjs-loader',
-        query: {
-          template: 'pug'
-        }
+        use: [
+          { loader: 'riotjs-loader',
+            query: {
+              template: 'pug'
+            }
+          }
+        ]
       }, {
         test: /\.(js|tag)$/,
         exclude: [/node_modules/],

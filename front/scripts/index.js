@@ -9,7 +9,11 @@ import './tags/login.tag';
 import './tags/card.tag';
 import './tags/card-detail.tag';
 import './tags/containers/home.tag';
+import './tags/containers/mypage.tag';
+import './tags/containers/upload.tag';
 import './tags/containers/detail.tag';
+import './tags/containers/admin.tag';
+import './tags/containers/setting.tag';
 
 // modules
 import firebase from './firebase'

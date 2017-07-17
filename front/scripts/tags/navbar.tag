@@ -12,5 +12,6 @@ navbar
         br
         span {opts.user.eth} Ether
     section.navbar-section
+      a.btn.btn-link(onclick="{() => opts.go('admin')}") Admin
       a.btn.btn-link(onclick="{() => opts.go('setting')}") Setting
       a.btn.btn-link(onclick="{opts.logout}") Logout
