@@ -169,6 +169,7 @@ const web3c = {
         continue;
       }
       sellInfo.push({
+        id: i,
         from,
         quantity: quantity.toNumber(),
         price: price.toNumber(),

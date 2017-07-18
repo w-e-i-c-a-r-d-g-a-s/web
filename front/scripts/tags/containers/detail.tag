@@ -62,7 +62,7 @@ detail
                     onchange="{parent.opts.selectSell}"
                     if="{o.from !== parent.opts.user.etherAccount.toLowerCase()}"
                   )
-                td {i}
+                td {o.id}
                 td
                   span.inline-block.text-ellipsis.addr {o.from}
                 td {o.quantity}

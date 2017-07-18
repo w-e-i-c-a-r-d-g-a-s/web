@@ -160,11 +160,11 @@ app
 
     buy(){
       const selectedSellOrder = this.card.sellInfo[this.sellInfoId];
-      const gas = 77911;
+      const gas = 38055;
       this.web3c.buy(
         this.user.etherAccount,
         this.card.address,
-        this.sellInfoId,
+        selectedSellOrder.id,
         gas,
         selectedSellOrder.totalPriceEth
       );
