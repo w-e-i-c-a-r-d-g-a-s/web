@@ -12,7 +12,11 @@ app
       add-card="{addCard}"
     )
     admin(if="{page === 'admin'}" deploy-card-master="{deployCardMaster}")
-    setting(if="{page === 'setting'}")
+    setting(
+      if="{page === 'setting'}"
+      downloadks="{downloadKS}"
+      unlock="{unlock}"
+    )
     detail(
       if="{page === 'detail'}"
       user="{user}"
@@ -111,9 +115,7 @@ app
       });
     }
 
-    unlock(){
-      const pw = this.refs.password;
-      const _pw = pw.value;
+    unlock(_pw){
       this.web3c.unlock(
         this.user.etherAccount,
         _pw,
