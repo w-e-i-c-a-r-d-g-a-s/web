@@ -21,7 +21,7 @@ const browsers = [
 module.exports = {
   context: path.resolve(__dirname, './front'),
   entry: {
-    app: './scripts/index.js'
+    app: ['babel-polyfill', './scripts/index.js']
   },
 
   output: {

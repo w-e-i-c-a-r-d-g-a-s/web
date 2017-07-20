@@ -15,7 +15,10 @@ detail
                 th num
               tr(each="{o in opts.card.owners}")
                 td
-                  span.inline-block.text-ellipsis.addr {o.address}
+                  .tile.tile-centered
+                    .tile-icon
+                      img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[o.address] }")
+                    .tile-content.inline-block.text-ellipsis.addr {o.address}
                 td {o.num}
           .panel-footer
 
@@ -64,7 +67,10 @@ detail
                   )
                 td {o.id}
                 td
-                  span.inline-block.text-ellipsis.addr {o.from}
+                  .tile.tile-centered
+                    .tile-icon
+                      img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[o.from] }")
+                    .tile-content.inline-block.text-ellipsis.addr {o.from}
                 td {o.quantity}
                 td
                   | {o.priceEth} Ether
@@ -121,7 +127,10 @@ detail
                   )
                 td {i}
                 td
-                  span.inline-block.text-ellipsis.addr {o.buyer}
+                  .tile.tile-centered
+                    .tile-icon
+                      img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[o.buyer] }")
+                    .tile-content.inline-block.text-ellipsis.addr {o.buyer}
                 td {o.quantity}
                 td
                   | {o.priceEth} Ether

@@ -41,3 +41,15 @@
     word-wrap: break-word;
   }
 }
+
+.toasts {
+  position: fixed;
+  top: 62px;
+  right: 10px;
+}
+
+.toast {
+  width: 730px;
+  font-size: 12px;
+  margin-bottom: 7px;
+}

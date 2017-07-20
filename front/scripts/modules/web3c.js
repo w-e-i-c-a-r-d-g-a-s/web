@@ -25,33 +25,38 @@ const CardContract = web3.eth.contract(CardABI);
 const BuyOrderContract = web3.eth.contract(BuyOrderABI);
 
 var filter = web3.eth.filter('latest');
-// watch for changes
-filter.watch(function(error, result){
-  if (error) {
-    console.alert(error);
-    return;
-  }
-  // console.log(result);
-  const block = web3.eth.getBlock(result, true);
-  if(block.transactions.length > 0){
-    block.transactions.forEach((tx, i) => {
-      var receipt = web3.eth.getTransactionReceipt(tx.hash);
-      // console.log(tx, receipt);
-      // 注 指定したgasとgasUsedがドンピシャだと成功したことになっている
-      if(receipt.gasUsed === tx.gas){
-        console.error(`Transaction failed (out of gas, thrown) ${receipt.gasUsed}`);
-        return;
-      }
-      console.log(`🔨mined! (${i}) => blockNumber: ${tx.blockNumber}, from: ${tx.from}, to: ${tx.to}, value: ${tx.value.toString(10)}, gasUsed: ${receipt.gasUsed}, gas: ${tx.gas}`);
-    });
-  }
-});
 
 
 const web3c = {
   web3,
+  watch(cb){
+    // watch for changes
+    filter.watch(function(error, result){
+      if (error) {
+        console.alert(error);
+        return;
+      }
+      // console.log(result);
+      const block = web3.eth.getBlock(result, true);
+      if(block.transactions.length > 0){
+        block.transactions.forEach((tx, i) => {
+          var receipt = web3.eth.getTransactionReceipt(tx.hash);
+          // console.log(tx, receipt);
+          // 注 指定したgasとgasUsedがドンピシャだと成功したことになっている
+          if(receipt.gasUsed === tx.gas){
+            const text = `Transaction failed (out of gas, thrown) ${receipt.gasUsed}`;
+            cb(text, 'error');
+            return;
+          }
+          const text = `🔨mined! (${i}) => blockNumber: ${tx.blockNumber}, from: ${tx.from}, to: ${tx.to}, value: ${tx.value.toString(10)}, gasUsed: ${receipt.gasUsed}, gas: ${tx.gas}`;
+          cb(text, 'success');
+        });
+      }
+    });
+  },
+
   // アンロック
-  unlock: (userName, password, cb = () => {}) => {
+  unlock: (userName, password, cb = () => {}, err = () => {}) => {
     const unlockDurationSec = 0; // 0の場合永続的
     const jsonData = createJSONdata('personal_unlockAccount',
       [
@@ -65,13 +70,13 @@ const web3c = {
       if(data.error == null){
         console.log('account unlocked! 😀', userName);
       } else {
-        console.error(`login error: ${data.error.message}`);
+        err(`login error: ${data.error.message}`);
+        return;
       }
       cb();
     }, (data) => {
       // fail
-      console.log('login error');
-      cb();
+      err(`login error`);
     });
   },
 
@@ -139,9 +144,7 @@ const web3c = {
     // console.log('sell', quantity, price, cardAddress, account, {gas});
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
-    const tx = card.sellOrder(quantity, price, { gas });
-
-    console.log(`transaction send! => ${tx}`);
+    return card.sellOrder(quantity, price, { gas });
   },
 
   // 買う
@@ -151,8 +154,7 @@ const web3c = {
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
     const value = web3.toWei(ether, 'ether');
-    const tx = card.buy(sellInfoId, { gas, value });
-    console.log(tx);
+    return card.buy(sellInfoId, { gas, value });
   },
 
   refreshSellInfo(cardAddress){
@@ -190,8 +192,7 @@ const web3c = {
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
     const value = quantity * web3.toWei(price, 'ether');
-    const tx = card.createBuyOrder(quantity, price, { gas, value });
-    console.log(tx);
+    return card.createBuyOrder(quantity, price, { gas, value });
   },
 
   /**
@@ -226,9 +227,8 @@ const web3c = {
     const card = CardContract.at(cardAddress);
     const buyOrder = BuyOrderContract.at(card.buyOrders(bidIndex));
     const value = quantity * buyOrder.price().toNumber();
-    console.log(bidIndex, quantity, { gas, value });
-    const tx = card.sell(bidIndex, quantity, { gas, value });
-    console.log(tx);
+    // console.log(bidIndex, quantity, { gas, value });
+    return card.sell(bidIndex, quantity, { gas, value });
   }
 
 };

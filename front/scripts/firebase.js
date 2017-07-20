@@ -24,8 +24,17 @@ firebase.auth().getRedirectResult().then(function(result) {
   console.log(error);
 });
 
+// アドレスと画像の紐付け
+const addressToPhotoUrl = {};
+const res = firebase.database().ref('users').limitToLast(100);
+res.on('child_added', (ss) => {
+  const val = ss.val();
+  addressToPhotoUrl[val.etherAccount] = val.photoURL;
+});
+
 export default {
   firebase: {
+    addressToPhotoUrl,
     // ログインしているかどうか
     isLoggedIn(){
       return new Promise((resolve, reject) => {
@@ -46,6 +55,17 @@ export default {
           .ref(`users/${userUID}`)
           .on('value', (snapshot) => {
             resolve(snapshot.val());
+          });
+      });
+    },
+
+    // etherのアドレスからユーザを検索
+    findByUser(address){
+      const ref = firebase.database().ref('users');
+      return new Promise((resolve, reject) => {
+        ref.orderByChild('etherAccount').equalTo(address)
+          .on('child_added', (snapshot) => {
+            resolve(snapshot.val().photoURL);
           });
       });
     },
@@ -85,7 +105,7 @@ export default {
     // update eth account
     updateEthAccount(id, {address, fileName}){
       return firebase.database().ref('users/' + id).update({
-        etherAccount: address,
+        etherAccount: address.toLowerCase(),
         etherKeyStoreFile: fileName
       });
     }

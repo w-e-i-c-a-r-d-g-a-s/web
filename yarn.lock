@@ -751,6 +751,14 @@ babel-plugin-transform-strict-mode@^6.24.1:
     babel-runtime "^6.22.0"
     babel-types "^6.24.1"
 
+babel-polyfill@^6.23.0:
+  version "6.23.0"
+  resolved "https://registry.yarnpkg.com/babel-polyfill/-/babel-polyfill-6.23.0.tgz#8364ca62df8eafb830499f699177466c3b03499d"
+  dependencies:
+    babel-runtime "^6.22.0"
+    core-js "^2.4.0"
+    regenerator-runtime "^0.10.0"
+
 babel-preset-es2015-riot@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/babel-preset-es2015-riot/-/babel-preset-es2015-riot-1.1.0.tgz#7810a74f0f5f82acc169db506d43c435a3ddfc3a"

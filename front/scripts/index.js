@@ -14,6 +14,7 @@ import './tags/containers/upload.tag';
 import './tags/containers/detail.tag';
 import './tags/containers/admin.tag';
 import './tags/containers/setting.tag';
+import './tags/containers/toast-box.tag';
 
 // modules
 import firebase from './firebase'
