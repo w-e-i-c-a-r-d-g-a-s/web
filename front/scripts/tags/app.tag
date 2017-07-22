@@ -184,12 +184,13 @@ app
     }
 
     selectBid(e){
-      this.bidId = e.item.i;
+      this.bidId = e ? e.item.i : null;
+      console.log(this.bidId);
       this.update();
     }
 
     selectAsk(e){
-      this.askId = e.item.i;
+      this.askId =  e ? e.item.i : null;
       this.update();
     }
 

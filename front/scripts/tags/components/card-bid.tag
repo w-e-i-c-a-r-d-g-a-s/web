@@ -69,7 +69,7 @@ card-bid
           .columns.col-gapless
             .column.col-12(if="{opts.bidInfo.length > 0}")
               button.btn.btn-sm.btn-primary(
-                onclick="{opts.acceptBid}"
+                onclick="{acceptBid}"
                 disabled="{!_.isNumber(opts.bidId)}"
               ) 選択したものを購入
     .panel-footer
@@ -130,5 +130,13 @@ card-bid
       }
       this.opts.bidInfo.map((s, i) => s.selected = i === e.item.i);
       this.opts.selectBid(e);
+      this.update();
+    }
+
+    acceptBid(){
+      this.opts.acceptBid();
+      // チェックをリセット
+      this.opts.bidInfo.map((s, i) => s.selected = false);
+      this.opts.selectBid(null);
       this.update();
     }
