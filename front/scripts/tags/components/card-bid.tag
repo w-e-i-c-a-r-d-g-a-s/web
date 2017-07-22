@@ -7,7 +7,7 @@ card-bid
           i.icon.icon-refresh
     .panel-body
       .columns
-        .column.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-4
+        .column.col-3.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-4
           .panel
             .panel-header
               .panel-title 売り注文
@@ -39,12 +39,12 @@ card-bid
                     span.input-group-addon.addon-sm Wei
             .panel-footer
               button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 売る
-        .column.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
+        .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
           h5.inline-block.text-normal 売り注文一覧
           table.table.table-striped.table-hover
             tr
               th
-              th 売り手
+              th 売却者
               th 枚数
               th 一枚あたりの価格
               th 総価格

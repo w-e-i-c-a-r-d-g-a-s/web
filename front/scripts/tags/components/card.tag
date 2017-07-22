@@ -1,12 +1,23 @@
 card
-  .card.inline-block.td-card(onclick="{goDetail}")
+  .card.inline-block.td-card(onclick="{goDetail}" class="{'-single': opts.single}")
+    .card-header
+      .card-title {opts.card.name}
+      .card-subtitle.text-ellipsis {opts.card.address}
     .card-image
-      img.img-responsive(src='http://kryptomoney.com/wp-content/uploads/2017/06/ethereum-logo.png')
-      .card-header
-        h4.card-title {opts.card.name}
-        h6.card-subtitle 発行枚数： {opts.card.issued}
-      .card-body
-        span.desc {opts.card.address}
+      img.img-responsive(src='https://cdn-images-1.medium.com/max/720/0*52_QQpw7YGDelBvo.')
+    .card-body
+      dl
+        dt 発行枚数
+        dd {opts.card.issued}
+      dl
+        dt 作成者
+        dd
+          .text-ellipsis
+            .tile.tile-centered
+              .tile-icon
+                img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[opts.card.author] }")
+              .tile-content.inline-block.text-ellipsis.addr {opts.card.author}
+    .card-footer
 
   script.
     goDetail(e){

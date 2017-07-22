@@ -1,14 +1,14 @@
 detail
   .container.page.page-detail
     .columns
-      .column.col-xs-12.col-sm-12.col-md-12.col-lg-4.col-xl-3
+      .column.col-2.col-xs-12.col-sm-12.col-md-12.col-lg-4.col-xl-3
         .columns
-          .column.col-12.col-xs-12.col-sm-6.col-md-5
-            card-detail(card="{opts.card}")
-          .column.col-12.col-xs-12.col-sm-6.col-md-7
+          .column.col-12.col-xs-12.col-sm-6.col-md-5.col-lg-12.col-xl-12
+            card(card="{opts.card}" single="{true}")
+          .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
             card-owners(card="{opts.card}")
 
-      .column.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
+      .column.col-10.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
         card-bid(
           accept-bid="{opts.acceptBid}"
           bid="{opts.bid}"
