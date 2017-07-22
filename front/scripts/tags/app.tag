@@ -6,7 +6,11 @@ app
       cards="{cards}"
       go-detail="{goDetail}"
     )
-    mypage(if="{page === 'mypage'}")
+    mycards(
+      if="{page === 'mycards'}"
+      user="{user}"
+      go-detail="{goDetail}"
+    )
     upload(
       if="{page === 'upload'}"
       add-card="{addCard}"
@@ -121,8 +125,8 @@ app
       this.web3c.deployCardMaster('0xf5290627291e0dd723741ead15ca20242aeccdd2');
     }
 
-    goDetail(e){
-      this.card = this.web3c.getCard(e.item.address);
+    goDetail(cardAddress){
+      this.card = this.web3c.getCard(cardAddress);
       this.go('detail');
     }
 

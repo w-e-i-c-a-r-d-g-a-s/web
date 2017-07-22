@@ -102,18 +102,25 @@ const web3c = {
     console.log(`transaction send! => ${tx}`);
   },
 
-  // カードを取得
+  /**
+   * カードを取得
+   * @param {string} account 絞り込むユーザアカウント。省略した場合はすべてのカードを返す
+   * @returns {array} カードデータのリスト
+   */
   getCards(account){
     const cards = CardMasterInstance.getCardAddressList().map((address) => {
       const card = CardContract.at(address);
       return {
+        card,
         address,
         name: web3.toAscii(card.name()),
         author: card.author(),
         issued: card.issued().toString(10)
       }
     });
-    return account ? cards.filter((c) => c.author === account) : cards;
+    return account ? cards.filter((c) => {
+      return c.card.getOwnerList().filter((address) => address === account && c.card.owns(address).toNumber() > 0).length > 0;
+    }) : cards;
   },
 
   // カード情報を取得

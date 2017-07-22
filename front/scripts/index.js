@@ -5,15 +5,15 @@ import '../styles/app.css';
 
 //tags
 import './tags/app.tag';
-import './tags/navbar.tag';
 import './tags/login.tag';
 import './tags/components/card.tag';
+import './tags/components/navbar.tag';
 import './tags/components/card-detail.tag';
 import './tags/components/card-owners.tag';
 import './tags/components/card-bid.tag';
 import './tags/components/card-ask.tag';
 import './tags/containers/home.tag';
-import './tags/containers/mypage.tag';
+import './tags/containers/mycards.tag';
 import './tags/containers/upload.tag';
 import './tags/containers/detail.tag';
 import './tags/containers/admin.tag';

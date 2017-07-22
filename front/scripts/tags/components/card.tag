@@ -1,5 +1,5 @@
 card
-  .card.inline-block.td-card(onclick="{parent.opts.goDetail}")
+  .card.inline-block.td-card(onclick="{goDetail}")
     .card-image
       img.img-responsive(src='http://kryptomoney.com/wp-content/uploads/2017/06/ethereum-logo.png')
       .card-header
@@ -8,3 +8,7 @@ card
       .card-body
         span.desc {opts.card.address}
 
+  script.
+    goDetail(e){
+      this.parent.opts.goDetail(e.item.card.address);
+    }
