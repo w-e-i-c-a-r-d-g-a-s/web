@@ -29,7 +29,7 @@ app
       ask="{ask}"
       bid-id="{bidId}"
       ask-id="{this.askId}"
-      buy="{buy}"
+      accept-bid="{acceptBid}"
       select-bid="{selectBid}"
       select-ask= "{selectAsk}"
       refresh-bid-info="{refreshBidInfo}"
@@ -207,11 +207,11 @@ app
       this.update();
     }
 
-    buy(){
+    acceptBid(){
       const selectedBid = this.card.bidInfo[this.bidId];
       const gas = 208055;
       try {
-        const tx = this.web3c.buy(
+        const tx = this.web3c.acceptBid(
           this.user.etherAccount,
           this.card.address,
           selectedBid.id,

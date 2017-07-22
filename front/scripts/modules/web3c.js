@@ -151,8 +151,16 @@ const web3c = {
     return card.sellOrder(quantity, price, { gas });
   },
 
-  // 買う
-  buy: (account, cardAddress, bidId, gas, ether = 0) => {
+  /**
+   * 売り注文を購入
+   *
+   * @param {string} account ユーザアカウント
+   * @param {string} cardAddress カードアドレス
+   * @param {number} bidId 選択したbidのid
+   * @param {number} gas gas
+   * @param {number} ether=0 総価格(eth)
+   */
+  acceptBid: (account, cardAddress, bidId, gas, ether = 0) => {
     console.log(account, cardAddress, bidId, gas, ether);
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);

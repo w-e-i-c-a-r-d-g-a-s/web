@@ -10,7 +10,7 @@ detail
 
       .column.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
         card-bid(
-          buy="{opts.buy}"
+          accept-bid="{opts.acceptBid}"
           bid="{opts.bid}"
           refresh-bid-info="{opts.refreshBidInfo}"
           bid-info="{opts.card.bidInfo}"

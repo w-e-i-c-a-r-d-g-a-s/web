@@ -69,7 +69,7 @@ card-bid
           .columns.col-gapless
             .column.col-12(if="{opts.bidInfo.length > 0}")
               button.btn.btn-sm.btn-primary(
-                onclick="{opts.buy}"
+                onclick="{opts.acceptBid}"
                 disabled="{!_.isNumber(opts.bidId)}"
               ) 選択したものを購入
     .panel-footer
