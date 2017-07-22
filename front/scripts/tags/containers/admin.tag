@@ -51,8 +51,6 @@ admin
         const { web3 }  = this.web3c;
         const sender = this.account;
         const receiver = this.refs.receiver.value;
-        const amount = web3.toWei(this.refs.eth.value, "ether");
-        const tx = web3.eth.sendTransaction({from:sender, to:receiver, value: amount})
-        console.log(tx);
+        this.opts.send(sender, receiver, this.refs.eth.value);
       }
     }

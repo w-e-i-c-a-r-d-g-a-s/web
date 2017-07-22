@@ -11,7 +11,11 @@ app
       if="{page === 'upload'}"
       add-card="{addCard}"
     )
-    admin(if="{page === 'admin'}" deploy-card-master="{deployCardMaster}")
+    admin(
+      if="{page === 'admin'}"
+      send="{send}"
+      deploy-card-master="{deployCardMaster}"
+    )
     setting(
       if="{page === 'setting'}"
       downloadks="{downloadKS}"
@@ -45,14 +49,14 @@ app
     this.queue = [];
 
     this.on('mount', () => {
-      // filterの監視
-      this.web3c.watch((text, type='') => {
-        this.queue.push({ text, type });
-        this.update();
-      });
 
       this.firebase.isLoggedIn().then((user) => {
         this.user = user;
+        // filterの監視
+        this.web3c.watch(this.user.etherAccount, (text, type='') => {
+          this.queue.push({ text, type });
+          this.update();
+        });
         this.firebase.getUserData(this.user.uid)
           .then((_user) => {
             this.user.etherAccount= _user.etherAccount;
@@ -140,7 +144,7 @@ app
     }
 
     sell(quantity, wei){
-      const gas = 223823;
+      const gas = 423823;
       try {
         const tx = this.web3c.sell(
           quantity,
@@ -179,7 +183,8 @@ app
 
     buy(){
       const selectedSellOrder = this.card.sellInfo[this.sellInfoId];
-      const gas = 38055;
+      console.log(selectedSellOrder);
+      const gas = 208055;
       try {
         const tx = this.web3c.buy(
           this.user.etherAccount,
@@ -197,7 +202,7 @@ app
     // TODO priceはEtherが入っている（本当はwei)
     buyOrder(quantity, price){
       // console.log(quantity, price);
-      const gas = 400000;
+      const gas = 800000;
       try{
         const tx = this.web3c.buyOrder(
           this.user.etherAccount,
@@ -213,12 +218,14 @@ app
     }
 
     acceptBid(quantity){
-      const gas = 223823;
+      const selectedBuyOrder = this.card.buyOrderInfo[this.buyOrderId];
+      console.log(selectedBuyOrder.id);
+      const gas = 1523823;
       try{
         const tx = this.web3c.acceptBid(
           this.user.etherAccount,
           this.card.address,
-          this.buyOrderId,
+          selectedBuyOrder.id,
           quantity,
           gas
         );
@@ -237,4 +244,20 @@ app
       this.queue.push({ text, type });
       this.update();
     }
+
+    send(sender, receiver, value){
+      const { web3 }  = this.web3c;
+      const amount = web3.toWei(value, "ether");
+      try{
+        const tx = web3.eth.sendTransaction({
+          from:sender,
+          to:receiver,
+          value: amount
+        })
+        this.notify(`transaction send! => ${tx}`);
+      }catch(e){
+        this.notify(e.message, 'error');
+      }
+    }
+
 

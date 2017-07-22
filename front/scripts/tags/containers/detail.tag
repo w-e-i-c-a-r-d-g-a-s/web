@@ -1,30 +1,16 @@
 detail
   .container.page.page-detail
     .columns
-      .column.col-3
-        card-detail(card="{opts.card}")
-        .panel
-          .panel-header
-            .panel-title Card Owners
-          .panel-body
-            span.block author:
-            span.text-break.inline-block.text-ellipsis.addr {opts.card.author}
-            table.table.table-striped.table-hover
-              tr
-                th account
-                th num
-              tr(each="{o in opts.card.owners}")
-                td
-                  .tile.tile-centered
-                    .tile-icon
-                      img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[o.address] }")
-                    .tile-content.inline-block.text-ellipsis.addr {o.address}
-                td {o.num}
-          .panel-footer
-
-      .column.col-9
+      .column.col-xs-12.col-sm-12.col-md-12.col-lg-4.col-xl-3
         .columns
-          .column.col-4
+          .column.col-12.col-xs-12.col-sm-6.col-md-5
+            card-detail(card="{opts.card}")
+          .column.col-12.col-xs-12.col-sm-6.col-md-7
+            card-owners(card="{opts.card}")
+
+      .column.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
+        .columns
+          .column.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-4
             .panel
               .panel-header
                 .panel-title Sell Order
@@ -43,7 +29,7 @@ detail
                       span.input-group-addon.addon-sm Wei
               .panel-footer
                 button.btn.btn-primary.btn-sm(onclick="{sell}") Sell
-          .column.col-8
+          .column.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
             h5.inline-block.text-normal Sell Info
             button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshSellInfo}")
               i.icon.icon-refresh
@@ -80,10 +66,10 @@ detail
             .column.col-12(if="{opts.card.sellInfo.length > 0}")
               button.btn.btn-sm.btn-primary(onclick="{opts.buy}") Buy
         .columns
-          .column.col-4
+          .column.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-4
             .panel
               .panel-header
-                .panel-title Buy Order
+                .panel-title Buy Order(このカードを買う）
               .panel-body
                 form
                   .form-group
@@ -103,7 +89,7 @@ detail
                       span.input-group-addon.addon-sm Wei
               .panel-footer
                 button.btn.btn-primary.btn-sm(onclick="{buyOrder}") BuyOrder
-          .column.col-8
+          .column.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
             h5.inline-block.text-normal BuyOrder Info
             button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshBuyorderInfo}")
               i.icon.icon-refresh
@@ -184,5 +170,7 @@ detail
 
     acceptBid(){
       const { buyOrderQuantity } = this.refs;
-      this.opts.acceptBid(buyOrderQuantity.value);
+      if(buyOrderQuantity.value){
+        this.opts.acceptBid(buyOrderQuantity.value);
+      }
     }

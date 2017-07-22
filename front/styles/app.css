@@ -20,8 +20,7 @@
 }
 
 .td-card {
-  width: 260px;
-  margin: 0 10px 10px;
+  width: 100%;
   padding: 10px;
   border: 8px solid;
   border-radius: 6px;

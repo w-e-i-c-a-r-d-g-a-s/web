@@ -17,7 +17,7 @@ const CardABI = JSON.parse(require('../../../sol/dist/Card.abi'));
 const BuyOrderABI = JSON.parse(require('../../../sol/dist/BuyOrder.abi'));
 
 // 定数
-const CardMasterAddress = '0x50bb84493b63b1e68fdb3bf28db05c221e19949e';
+const CardMasterAddress = '0xf8240cdebce4390211ddc9b775820df562364234';
 const CardMasterContract = web3.eth.contract(CardMasterABI);
 const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
 
@@ -29,7 +29,7 @@ var filter = web3.eth.filter('latest');
 
 const web3c = {
   web3,
-  watch(cb){
+  watch(account, cb){
     // watch for changes
     filter.watch(function(error, result){
       if (error) {
@@ -49,7 +49,10 @@ const web3c = {
             return;
           }
           const text = `🔨mined! (${i}) => blockNumber: ${tx.blockNumber}, from: ${tx.from}, to: ${tx.to}, value: ${tx.value.toString(10)}, gasUsed: ${receipt.gasUsed}, gas: ${tx.gas}`;
-          cb(text, 'success');
+          console.log(account, tx.from);
+          // if(account === tx.from){
+            cb(text, 'success');
+          // }
         });
       }
     });
@@ -201,10 +204,12 @@ const web3c = {
    */
   getBuyOrderInfo(card){
     const buyOrderInfo = [];
+    console.log(card.getBuyOrdersCount().toNumber());
     for (let i = 0, len = card.getBuyOrdersCount().toNumber(); i < len; i++) {
       const buyOrder = BuyOrderContract.at(card.buyOrders(i));
       if(!buyOrder.ended()){
         buyOrderInfo.push({
+          id: i,
           buyer: buyOrder.buyer(),
           totalPrice: buyOrder.value().toNumber(), // トータル wei
           totalPriceEth: web3.fromWei(buyOrder.value(), 'ether').toNumber(),
@@ -226,7 +231,7 @@ const web3c = {
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
     const buyOrder = BuyOrderContract.at(card.buyOrders(bidIndex));
-    const value = quantity * buyOrder.price().toNumber();
+    const value = quantity * web3.fromWei(buyOrder.price(), 'ether').toNumber();
     // console.log(bidIndex, quantity, { gas, value });
     return card.sell(bidIndex, quantity, { gas, value });
   }

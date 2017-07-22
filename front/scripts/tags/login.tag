@@ -2,13 +2,14 @@ login
   .loading(if="{isInitialLoading}")
 
   .container(if="{!isInitialLoading}")
+    h5.text-center Login
     .columns(if="{!isLoggedIn}")
-      .column.col-2.centered.text-center
-        h5 Login
+      .column.col-sm-1.col-lg-3
+      .column.col-sm-10.col-lg-6
         a.btn.btn-block(href="#" onclick="{authTwitter}") Sign in with Twitter
         .divider.text-center(data-content="OR")
         a.btn.btn-block(href="#" onclick="{authFacebook}") Sign in with Facebook
-
+      .column.col-sm-1.col-lg-3
     .columns(if="{isLoggedIn && !hasEthAccount}")
       .column.col-6
         form
