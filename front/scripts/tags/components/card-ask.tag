@@ -45,7 +45,11 @@ card-ask
 
         .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
           h5.inline-block.text-normal 買い注文一覧
-          table.table.table-striped.table-hover
+          .empty(if="{opts.askInfo.length === 0}")
+            .empty-icon
+              i.icon.icon-message(style="font-size: 3rem")
+            h4.empty-title 現在買い注文はありません
+          table.table.table-striped.table-hover(if="{opts.askInfo.length > 0}")
             tr
               th
               th 購入者
