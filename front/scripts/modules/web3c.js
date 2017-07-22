@@ -29,7 +29,7 @@ var filter = web3.eth.filter('latest');
 
 const web3c = {
   web3,
-  watch(account, cb){
+  watch(cb){
     // watch for changes
     filter.watch(function(error, result){
       if (error) {
@@ -41,18 +41,14 @@ const web3c = {
       if(block.transactions.length > 0){
         block.transactions.forEach((tx, i) => {
           var receipt = web3.eth.getTransactionReceipt(tx.hash);
-          // console.log(tx, receipt);
+          console.log(tx, receipt);
           // 注 指定したgasとgasUsedがドンピシャだと成功したことになっている
           if(receipt.gasUsed === tx.gas){
-            const text = `Transaction failed (out of gas, thrown) ${receipt.gasUsed}`;
-            cb(text, 'error');
+            const errorMsg = `Transaction failed (out of gas, thrown) ${receipt.gasUsed}`;
+            cb({ isError: true, errorMsg, receipt, tx, txIndex: i });
             return;
           }
-          const text = `🔨mined! (${i}) => blockNumber: ${tx.blockNumber}, from: ${tx.from}, to: ${tx.to}, value: ${tx.value.toString(10)}, gasUsed: ${receipt.gasUsed}, gas: ${tx.gas}`;
-          console.log(account, tx.from);
-          // if(account === tx.from){
-            cb(text, 'success');
-          // }
+          cb({ isError: false, receipt, tx, txIndex: i });
         });
       }
     });
@@ -102,9 +98,7 @@ const web3c = {
   // カードを登録
   addCard(account, name, issued, gas) {
     web3.eth.defaultAccount = account;
-    // const tx = CardMasterInstance.addCard(name, issued, { gas: 542564 }) // 初回
-    // const tx = CardMasterInstance.addCard(name, issued, { gas: 527564 }) // ２回目
-    const tx = CardMasterInstance.addCard(name, issued, { gas }) // ２回目
+    const tx = CardMasterInstance.addCard(name, issued, { gas });
     console.log(`transaction send! => ${tx}`);
   },
 
@@ -125,8 +119,8 @@ const web3c = {
   // カード情報を取得
   getCard(cardAddress){
     const card = CardContract.at(cardAddress);
-    const sellInfo = this.getSellInfo(card);
-    const buyOrderInfo = this.getBuyOrderInfo(card);
+    const bidInfo = this.getBidInfo(card);
+    const askInfo = this.getAskInfo(card);
     const owners = card.getOwnerList().map((address) => {
       return { address, num: card.owns(address).toString(10) };
     });
@@ -137,13 +131,20 @@ const web3c = {
       author: card.author(),
       issued: card.issued().toString(10),
       owners,
-      sellInfo,
-      buyOrderInfo
+      bidInfo,
+      askInfo
     }
   },
 
-  // 売る
-  sell: (quantity, price, cardAddress, account, gas) => {
+  /**
+   * 売り注文(bid)を発行
+   * @param {枚数} quantity 枚数
+   * @param {number} price 金額
+   * @param {string} cardAddress カードアドレス
+   * @param {string} account 実行ユーザアカウント
+   * @param {number} gas 送信gas
+   */
+  bid: (quantity, price, cardAddress, account, gas) => {
     // console.log('sell', quantity, price, cardAddress, account, {gas});
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
@@ -151,47 +152,43 @@ const web3c = {
   },
 
   // 買う
-  buy: (account, cardAddress, sellInfoId, gas, ether = 0) => {
-    console.log(account, cardAddress, sellInfoId, gas, ether);
-    // 選択したsellデータ
+  buy: (account, cardAddress, bidId, gas, ether = 0) => {
+    console.log(account, cardAddress, bidId, gas, ether);
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
     const value = web3.toWei(ether, 'ether');
-    return card.buy(sellInfoId, { gas, value });
+    return card.buy(bidId, { gas, value });
   },
 
-  refreshSellInfo(cardAddress){
+  refreshBidInfo(cardAddress){
     const card = CardContract.at(cardAddress);
-    const sellInfo = this.getSellInfo(card);
-    return sellInfo;
+    return this.getBidInfo(card);
   },
 
-  getSellInfo(card){
-    const sellInfo = [];
+  getBidInfo(card){
+    const bidInfo = [];
     for (let i = 0, len = card.sellInfosLength().toNumber(); i < len; i++) {
       const [from, quantity, price, active] = card.sellInfos(i);
       if(!active){
         continue;
       }
-      sellInfo.push({
+      bidInfo.push({
         id: i,
         from,
         quantity: quantity.toNumber(),
         price: price.toNumber(),
         priceEth: web3.fromWei(price, 'ether').toNumber(),
-        totalPrice: quantity * price,
-        totalPriceEth: quantity * web3.fromWei(price, 'ether'),
+        totalPrice: quantity.mul(price).toNumber(),
+        totalPriceEth: quantity.mul(web3.fromWei(price, 'ether')).toNumber(),
         active
       });
     }
 
-    console.log(sellInfo);
-    return sellInfo;
+    return bidInfo;
   },
 
-  buyOrder(account, cardAddress, quantity, price, gas,){
-    console.log(account, cardAddress, quantity, gas, price);
-    // 選択したsellデータ
+  ask(account, cardAddress, quantity, price, gas,){
+    // console.log(account, cardAddress, quantity, gas, price);
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
     const value = quantity * web3.toWei(price, 'ether');
@@ -199,16 +196,16 @@ const web3c = {
   },
 
   /**
-   * 買い注文を取得
-   * @param {object} card
+   * 買い注文(Ask)一覧を取得
+   * @param {object} card カードコントラクト
    */
-  getBuyOrderInfo(card){
-    const buyOrderInfo = [];
-    console.log(card.getBuyOrdersCount().toNumber());
+  getAskInfo(card){
+    const askInfo = [];
+    // console.log(card.getBuyOrdersCount().toNumber());
     for (let i = 0, len = card.getBuyOrdersCount().toNumber(); i < len; i++) {
       const buyOrder = BuyOrderContract.at(card.buyOrders(i));
       if(!buyOrder.ended()){
-        buyOrderInfo.push({
+        askInfo.push({
           id: i,
           buyer: buyOrder.buyer(),
           totalPrice: buyOrder.value().toNumber(), // トータル wei
@@ -219,19 +216,19 @@ const web3c = {
         });
       }
     }
-    return buyOrderInfo;
+    return askInfo;
   },
 
-  refreshBuyOrderInfo(cardAddress){
+  refreshAskInfo(cardAddress){
     const card = CardContract.at(cardAddress);
-    return this.getBuyOrderInfo(card);
+    return this.getAskInfo(card);
   },
 
-  acceptBid(account, cardAddress, bidIndex, quantity, gas){
+  acceptAsk(account, cardAddress, bidIndex, quantity, gas){
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
     const buyOrder = BuyOrderContract.at(card.buyOrders(bidIndex));
-    const value = quantity * web3.fromWei(buyOrder.price(), 'ether').toNumber();
+    const value = web3.fromWei(buyOrder.price(), 'ether').mul(quantity).toNumber();
     // console.log(bidIndex, quantity, { gas, value });
     return card.sell(bidIndex, quantity, { gas, value });
   }

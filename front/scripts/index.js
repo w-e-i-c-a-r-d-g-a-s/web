@@ -1,4 +1,5 @@
 import riot from 'riot';
+import _ from 'lodash';
 
 import '../styles/app.css';
 
@@ -9,6 +10,8 @@ import './tags/login.tag';
 import './tags/card.tag';
 import './tags/components/card-detail.tag';
 import './tags/components/card-owners.tag';
+import './tags/components/card-bid.tag';
+import './tags/components/card-ask.tag';
 import './tags/containers/home.tag';
 import './tags/containers/mypage.tag';
 import './tags/containers/upload.tag';

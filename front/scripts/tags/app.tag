@@ -25,14 +25,16 @@ app
       if="{page === 'detail'}"
       user="{user}"
       card="{card}"
-      sell="{sell}"
-      select-sell="{selectSell}"
-      select-buyorder= "{selectBuyOrder}"
-      refresh-sell-info="{refreshSellInfo}"
+      bid="{bid}"
+      ask="{ask}"
+      bid-id="{bidId}"
+      ask-id="{this.askId}"
       buy="{buy}"
-      buy-order="{buyOrder}"
-      refresh-buyorder-info="{refreshBuyOrderInfo}"
-      accept-bid="{acceptBid}"
+      select-bid="{selectBid}"
+      select-ask= "{selectAsk}"
+      refresh-bid-info="{refreshBidInfo}"
+      refresh-ask-info="{refreshAskInfo}"
+      accept-ask="{acceptAsk}"
     )
 
   toast-box(queue="{queue}")
@@ -52,17 +54,33 @@ app
 
       this.firebase.isLoggedIn().then((user) => {
         this.user = user;
-        // filterの監視
-        this.web3c.watch(this.user.etherAccount, (text, type='') => {
-          this.queue.push({ text, type });
-          this.update();
-        });
         this.firebase.getUserData(this.user.uid)
           .then((_user) => {
             this.user.etherAccount= _user.etherAccount;
             this.user.wei = this.web3c.web3.eth.getBalance(_user.etherAccount).toString(10);
             this.user.eth = this.web3c.web3.fromWei(this.user.wei, "ether");
             this.update();
+            // filterの監視
+            this.web3c.watch((res) => {
+              const { tx, receipt, isError, txIndex } = res;
+              // 自分が発行したtxの場合は通知
+              if(this.user.etherAccount === tx.from){
+                let text = '';
+                if(isError){
+                  text = res.errorMsg;
+                } else {
+                  text = `🔨mined! (${txIndex}) => blockNumber: ${tx.blockNumber},
+                    value: ${tx.value.toString(10)},
+                    gasUsed: ${receipt.gasUsed},
+                    gas: ${tx.gas}`;
+                }
+                this.queue.push({
+                  text,
+                  type: isError ? 'error' : 'success'
+                });
+                this.update();
+              }
+            });
           });
         this.isLoggedIn = true;
         this.update();
@@ -72,7 +90,6 @@ app
 
       // カードを取得
       this.cards = this.web3c.getCards();
-      console.log(this.cards);
     });
 
     /**
@@ -143,10 +160,17 @@ app
       );
     }
 
-    sell(quantity, wei){
-      const gas = 423823;
+    /**
+     * 売り注文(bid)を発行
+     *
+     * @param {number} quantity 数量
+     * @param {number} wei 一枚あたりの価格(wei)
+     */
+    bid(quantity, wei){
+      // const gas = 423823;
+      const gas = 200000;
       try {
-        const tx = this.web3c.sell(
+        const tx = this.web3c.bid(
           quantity,
           wei,
           this.card.address,
@@ -159,39 +183,40 @@ app
       }
     }
 
-    selectSell(e){
-      this.sellInfoId = e.item.i;
+    selectBid(e){
+      this.bidId = e.item.i;
+      this.update();
     }
 
-    selectBuyOrder(e){
-      this.buyOrderId = e.item.i;
+    selectAsk(e){
+      this.askId = e.item.i;
+      this.update();
     }
 
-    refreshSellInfo(){
+    refreshBidInfo(){
       this.card = assign({}, this.card, {
-        sellInfo: this.web3c.refreshSellInfo(this.card.address)
+        bidInfo: this.web3c.refreshBidInfo(this.card.address)
       });
       this.update();
     }
 
-    refreshBuyOrderInfo(){
+    refreshAskInfo(){
       this.card = assign({}, this.card, {
-        buyOrderInfo: this.web3c.refreshBuyOrderInfo(this.card.address)
+        askInfo: this.web3c.refreshAskInfo(this.card.address)
       });
       this.update();
     }
 
     buy(){
-      const selectedSellOrder = this.card.sellInfo[this.sellInfoId];
-      console.log(selectedSellOrder);
+      const selectedBid = this.card.bidInfo[this.bidId];
       const gas = 208055;
       try {
         const tx = this.web3c.buy(
           this.user.etherAccount,
           this.card.address,
-          selectedSellOrder.id,
+          selectedBid.id,
           gas,
-          selectedSellOrder.totalPriceEth
+          selectedBid.totalPriceEth
         );
         this.notify(`transaction send! => ${tx}`);
       }catch(e){
@@ -199,12 +224,18 @@ app
       }
     }
 
-    // TODO priceはEtherが入っている（本当はwei)
-    buyOrder(quantity, price){
-      // console.log(quantity, price);
+    /**
+     * 買い注文を発行
+     *
+     * @param {number} quantity 数量
+     * @param {number} wei 1枚あたりの価格(wei)
+     */
+    ask(quantity, wei){
+      // TODO ここで単位をetherに変換
+      const price = this.web3c.web3.fromWei(wei, 'ether');
       const gas = 800000;
       try{
-        const tx = this.web3c.buyOrder(
+        const tx = this.web3c.ask(
           this.user.etherAccount,
           this.card.address,
           quantity,
@@ -217,15 +248,14 @@ app
       }
     }
 
-    acceptBid(quantity){
-      const selectedBuyOrder = this.card.buyOrderInfo[this.buyOrderId];
-      console.log(selectedBuyOrder.id);
+    acceptAsk(quantity){
+      const selectedAsk = this.card.askInfo[this.askId];
       const gas = 1523823;
       try{
-        const tx = this.web3c.acceptBid(
+        const tx = this.web3c.acceptAsk(
           this.user.etherAccount,
           this.card.address,
-          selectedBuyOrder.id,
+          selectedAsk.id,
           quantity,
           gas
         );
