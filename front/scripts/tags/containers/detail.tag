@@ -27,3 +27,9 @@ detail
           accept-ask="{opts.acceptAsk}"
           user="{opts.user}"
         )
+  script.
+    this.on('mount', async () => {
+      const cardData = await this.firebase.getCard(this.opts.card.imageHash);
+      this.opts.card.imageUrl = cardData.url;
+      this.update();
+    });

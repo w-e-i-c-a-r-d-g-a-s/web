@@ -3,7 +3,6 @@ app
     navbar(user="{user}" logout="{logout}" go="{go}")
     home(
       if="{page === 'home'}"
-      cards="{cards}"
       go-detail="{goDetail}"
     )
     mycards(
@@ -13,6 +12,7 @@ app
     )
     upload(
       if="{page === 'upload'}"
+      user="{user}"
       add-card="{addCard}"
     )
     admin(
@@ -91,9 +91,6 @@ app
       }).catch((e) => {
         // not login
       });
-
-      // カードを取得
-      this.cards = this.web3c.getCards();
     });
 
     /**
@@ -107,9 +104,19 @@ app
     /**
      * カードを登録
      */
-    addCard(name, totalSupply){
+    addCard(name, totalSupply, imageHash){
+      console.log(name, totalSupply, imageHash);
       const gas = 1399659;
-      this.web3c.addCard(this.user.etherAccount, name, totalSupply, gas);
+      return new Promise((resolve, reject) => {
+        try {
+          const tx = this.web3c.addCard(this.user.etherAccount, name, totalSupply, imageHash.toString(), gas);
+          this.notify(`transaction send! => ${tx}`);
+          resolve();
+        }catch(e){
+          this.notify(e.message, 'error');
+          reject(Error('err'));
+        }
+      });
     }
 
     /**
@@ -171,7 +178,6 @@ app
      * @param {number} wei 一枚あたりの価格(wei)
      */
     bid(quantity, wei){
-      // const gas = 423823;
       const gas = 200000;
       try {
         const tx = this.web3c.bid(

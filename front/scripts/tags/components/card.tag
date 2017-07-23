@@ -1,23 +1,22 @@
 card
   .card.inline-block.td-card(onclick="{goDetail}" class="{'-single': opts.single}")
+    .card-image
+      img.img-fit-cover.image(if="{opts.card.imageUrl}" src="{opts.card.imageUrl}")
+      .image.loading(if="{!opts.card.imageUrl}")
     .card-header
       .card-title {opts.card.name}
       .card-subtitle.text-ellipsis {opts.card.address}
-    .card-image
-      img.img-responsive(src='https://cdn-images-1.medium.com/max/720/0*52_QQpw7YGDelBvo.')
     .card-body
-      dl
-        dt 発行枚数
-        dd {opts.card.issued}
-      dl
-        dt 作成者
-        dd
-          .text-ellipsis
-            .tile.tile-centered
-              .tile-icon
-                img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[opts.card.author] }")
-              .tile-content.inline-block.text-ellipsis.addr {opts.card.author}
-    .card-footer
+      .columns
+        .column.col-4 発行枚数
+        .column.col-8 {opts.card.issued}
+      .columns
+        .column.col-4 作成者
+        .column.col-8
+          .tile.tile-centered
+            .tile-icon
+              img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[opts.card.author] }")
+            .tile-content.inline-block.text-ellipsis.addr {opts.card.author}
 
   script.
     goDetail(e){

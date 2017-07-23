@@ -3,6 +3,9 @@ import config from './firebase.config';
 
 firebase.initializeApp(config);
 
+const storage = firebase.storage();
+const storageRef = storage.ref();
+
 firebase.auth().getRedirectResult().then(function(result) {
   const { user } = result;
   if(user){
@@ -107,6 +110,50 @@ export default {
       return firebase.database().ref('users/' + id).update({
         etherAccount: address.toLowerCase(),
         etherKeyStoreFile: fileName
+      });
+    },
+
+    /**
+     * カードデータを作成
+     * @param {object} card カードデータ
+     */
+    createCard(id, card){
+      firebase.database().ref('cards/' + id ).set(card);
+    },
+
+    getCard(id){
+      return new Promise((resolve, reject) => {
+        firebase.database().ref('cards/' + id ).once('value')
+          .then((ss) => {
+            resolve(ss.val());
+          });
+      });
+    },
+
+    /**
+     * 画像をアップロード
+     * @param {File} file ファイルオブジェクト
+     * @param {string} fileName ファイル名
+     */
+    uploadImage(file, fileName){
+      const metadata = {
+        'contentType': file.type
+      };
+      // 拡張子を取得
+      const _f = file.name.split('.');
+      const ext = _f[_f.length - 1];
+      return new Promise((resolve, reject) => {
+        storageRef.child(`images/${fileName}.${ext}`)
+          .put(file, metadata)
+          .then((snapshot) => {
+            // console.log('Uploaded', snapshot.totalBytes, 'bytes.');
+            // console.log(snapshot.metadata);
+            const url = snapshot.downloadURL;
+            resolve(url);
+            // console.log('File available at', url);
+          }).catch((err) => {;
+            reject(Error(err.message));
+          });
       });
     }
   }

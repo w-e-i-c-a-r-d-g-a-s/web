@@ -12,8 +12,8 @@ contract CardMaster {
     /**
      * CardのContractを配列とマップに追加
      */
-    function addCard(bytes32 _name, uint _issued) {
-        Card c = new Card(_name, _issued, msg.sender);
+    function addCard(bytes32 _name, uint _issued, bytes32 _imageHash) {
+        Card c = new Card(_name, _issued, _imageHash, msg.sender);
         addressList.push(address(c));
         cards[address(c)] = c;
         Debug(address(c));
@@ -38,6 +38,7 @@ contract CardMaster {
 contract Card {
     // カード属性など
     bytes32 public name;
+    bytes32 public imageHash;
     address public author;
     uint public issued;
 
@@ -50,11 +51,12 @@ contract Card {
     event Debug_i(uint);
     event Debug(address c);
 
-    function Card(bytes32 _name, uint _issued, address _author){
+    function Card(bytes32 _name, uint _issued, bytes32 _imageHash, address _author){
         name = _name;
         // author = msg.sender; // カードのコントラクトになってしまう
         author = _author;
         issued = _issued;
+        imageHash = _imageHash;
         addressList.push(author);
         owns[author] = issued;
     }

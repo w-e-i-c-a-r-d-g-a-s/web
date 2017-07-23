@@ -17,7 +17,8 @@ const CardABI = JSON.parse(require('../../../sol/dist/Card.abi'));
 const BuyOrderABI = JSON.parse(require('../../../sol/dist/BuyOrder.abi'));
 
 // 定数
-const CardMasterAddress = '0xf8240cdebce4390211ddc9b775820df562364234';
+// const CardMasterAddress = '0xf8240cdebce4390211ddc9b775820df562364234';
+const CardMasterAddress = '0xb0362489d4927cdc0f9c3e50f9dde3d96d8551f3';
 const CardMasterContract = web3.eth.contract(CardMasterABI);
 const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
 
@@ -96,10 +97,9 @@ const web3c = {
   },
 
   // カードを登録
-  addCard(account, name, issued, gas) {
+  addCard(account, name, issued, imageHash, gas) {
     web3.eth.defaultAccount = account;
-    const tx = CardMasterInstance.addCard(name, issued, { gas });
-    console.log(`transaction send! => ${tx}`);
+    return CardMasterInstance.addCard(name, issued, imageHash, { gas });
   },
 
   /**
@@ -114,6 +114,7 @@ const web3c = {
         card,
         address,
         name: web3.toAscii(card.name()),
+        imageHash: web3.toAscii(card.imageHash()),
         author: card.author(),
         issued: card.issued().toString(10)
       }
@@ -135,6 +136,7 @@ const web3c = {
     return {
       address: card.address,
       name: web3.toAscii(card.name()),
+      imageHash: web3.toAscii(card.imageHash()),
       author: card.author(),
       issued: card.issued().toString(10),
       owners,
