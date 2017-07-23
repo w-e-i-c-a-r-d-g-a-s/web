@@ -20,6 +20,7 @@ card-ask
                     ref="askQuantity"
                     oninput="{changeAskQuantity}"
                   )
+                .form-group
                   label.form-label(for="input-ask-price") 一枚あたりの価格
                   .input-group
                     input#input-ask-price.form-input.input-sm(
@@ -28,6 +29,7 @@ card-ask
                       oninput="{changeAskPrice}"
                     )
                     span.input-group-addon.addon-sm Ether
+                  p.form-input-hint 現状整数のみ入力可
                   label.form-label
                   .input-group
                     input.form-input.input-sm(
