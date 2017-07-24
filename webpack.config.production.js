@@ -1,3 +1,41 @@
+const webpack = require('webpack');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+
+const base = require('./webpack.config.base.js');
+
+const config = Object.create(base);
+
+
+config.plugins.push(
+  new webpack.LoaderOptionsPlugin({
+    minimize: true,
+    debug: false
+  })
+);
+
+config.plugins.push(
+  new UglifyJsPlugin({
+    mangle: true, // ローカル変数名を短い名称に変更する
+    sourcemap: false,
+    compress: {
+      unused: false,
+      conditionals: false,
+      dead_code: false,
+      side_effects: false
+    },
+    comments: false
+  })
+);
+
+config.plugins.push(
+  new webpack.ProgressPlugin((percentage, msg) => {
+    process.stdout.write('progress ' + Math.floor(percentage * 100) + '% ' + msg + '\r');
+  })
+);
+
+module.exports = config;
+
+/*
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const path = require('path');
 const webpack = require('webpack');
@@ -107,4 +145,4 @@ module.exports = {
     })
   ],
 };
-
+*/

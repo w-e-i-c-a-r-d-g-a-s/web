@@ -21,18 +21,14 @@ const browsers = [
 module.exports = {
   context: path.resolve(__dirname, './front'),
   entry: {
-    app: ['babel-polyfill', './scripts/index.js']
+    vendor: ['babel-polyfill', 'lodash', 'riot'],
+    app: ['./scripts/index.js']
   },
 
   output: {
     path: path.resolve(__dirname, './public/javascripts'),
     filename: '[name].bundle.js',
     publicPath: '/' // devServerのパス
-  },
-
-  devServer: {
-    contentBase: path.resolve(__dirname, './app'),
-    port: 9000
   },
 
   module: {
@@ -100,6 +96,12 @@ module.exports = {
     ]
   },
   plugins: [
+    new webpack.NoEmitOnErrorsPlugin(),
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+      }
+    }),
     new webpack.ProvidePlugin({ riot: 'riot' }),
     new ExtractTextPlugin({
       filename: '[name].css',

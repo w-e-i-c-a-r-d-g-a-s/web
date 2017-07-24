@@ -1,6 +1,3 @@
-import riot from 'riot';
-import _ from 'lodash';
-
 import '../styles/app.css';
 
 //tags

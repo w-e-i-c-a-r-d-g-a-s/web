@@ -5,3 +5,7 @@ node_modules
 /sol/dist
 /serviceAccountKey.json
 *.log
+
+/public/javascripts/*
+/public/stylesheets/app.css
+

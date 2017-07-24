@@ -6,7 +6,15 @@ html
     link(rel='stylesheet', href='/stylesheets/spectre-exp.min.css')
     link(rel='stylesheet', href='/stylesheets/spectre-icons.min.css')
     link(rel='stylesheet', href='/stylesheets/spectre.min.css')
-    link(rel='stylesheet', href='//localhost:9000/public/app.css')
+    if settings.env === 'production'
+      link(rel='stylesheet', href='/javascripts/app.css')
+    else
+      link(rel='stylesheet', href='//localhost:9000/app.css')
   body
     block content
-    script(src="//localhost:9000/public/app.bundle.js")
+    if settings.env === 'production'
+      script(src="/javascripts/app.bundle.js")
+      script(src="/javascripts/vendor.bundle.js")
+    else
+      script(src="//localhost:9000/vendor.bundle.js")
+      script(src="//localhost:9000/app.bundle.js")
