@@ -98,3 +98,21 @@ $ DEBUG=td:* nodemon bin/www
 ```
 
 `localhost:3000`にアクセスします。
+
+## Production
+
+フロントエンドをビルドする
+
+```
+$ npm run build
+```
+
+`public`にjs, cssが作成されます。
+
+```
+NODE_ENV=production node bin/www
+```
+
+で本番サーバを立てます。
+
+
