@@ -1,4 +1,4 @@
-import Web3 from 'Web3';
+import Web3 from 'web3';
 import ethers from 'ethers';
 import request from 'superagent';
 
