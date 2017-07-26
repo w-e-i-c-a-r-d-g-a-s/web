@@ -1,8 +1,9 @@
 import Web3 from 'web3';
 import ethers from 'ethers';
 import request from 'superagent';
+import { adminAddress, cardMasterAddress, rpcEndpoint } from '../../../etherSetting.json';
 
-const url = 'http://localhost:8545';
+const url = rpcEndpoint;
 let web3;
 if (typeof web3 !== 'undefined') {
   web3 = new Web3(web3.currentProvider);
@@ -18,7 +19,7 @@ const BuyOrderABI = JSON.parse(require('../../../sol/dist/BuyOrder.abi'));
 
 // 定数
 // const CardMasterAddress = '0xf8240cdebce4390211ddc9b775820df562364234';
-const CardMasterAddress = '0xb0362489d4927cdc0f9c3e50f9dde3d96d8551f3';
+const CardMasterAddress = cardMasterAddress;
 const CardMasterContract = web3.eth.contract(CardMasterABI);
 const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
 
@@ -81,9 +82,9 @@ const web3c = {
   },
 
   // カードマスターを登録
-  deployCardMaster(account) {
+  deployCardMaster() {
     var card_sol_cardmaster = CardMasterContract.new({
-      from: account,
+      from: adminAddress,
       data: CardMasterBIN,
       gas: '4700000'
     }, function (e, contract){

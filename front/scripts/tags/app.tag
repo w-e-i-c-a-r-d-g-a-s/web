@@ -129,7 +129,7 @@ app
     }
 
     deployCardMaster(){
-      this.web3c.deployCardMaster('0xf5290627291e0dd723741ead15ca20242aeccdd2');
+      this.web3c.deployCardMaster();
     }
 
     goDetail(cardAddress){
