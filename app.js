@@ -5,6 +5,7 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const cookieSession = require('cookie-session')
 const admin = require("firebase-admin");
 const index = require('./routes/index');
 const login = require('./routes/login');
@@ -33,7 +34,19 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // session setting
-app.use(session({ secret: 'starrain', resave: true, saveUninitialized: true }));
+if(process.env.NODE_ENV === 'production'){
+  app.use(cookieSession({
+    name: 'session',
+    keys: ['starrain'],
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 1 month
+  }))
+}else{
+  app.use(session({
+    secret: 'starrain',
+    resave: true,
+    saveUninitialized: true
+  }));
+}
 
 // ログインしていない場合の処理
 const isLoggedIn = (req, res, next) => {
