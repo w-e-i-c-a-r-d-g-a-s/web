@@ -16,7 +16,7 @@ const etherSetting = require('./etherSetting.json');
 const serviceAccount = require("./serviceAccountKey.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://td-demo-5c73d.firebaseio.com"
+  databaseURL: etherSetting.firebaseURL || "https://td-demo-5c73d.firebaseio.com"
 });
 
 const app = express();
