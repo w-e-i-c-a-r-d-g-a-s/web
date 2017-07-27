@@ -5,7 +5,6 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const session = require('express-session');
-const connectEnsureLogin = require('connect-ensure-login');
 const admin = require("firebase-admin");
 const index = require('./routes/index');
 const login = require('./routes/login');
