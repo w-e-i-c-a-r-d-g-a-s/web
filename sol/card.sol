@@ -1,39 +1,5 @@
-pragma solidity ^0.4.11;
-
-// カードマスター
-contract CardMaster {
-    // CardのContractのリスト
-    mapping(address => Card) private cards;
-    // アドレスを管理する配列
-    address[] private addressList;
-
-    event Debug(address c);
-
-    /**
-     * CardのContractを配列とマップに追加
-     */
-    function addCard(bytes32 _name, uint _issued, bytes32 _imageHash) {
-        Card c = new Card(_name, _issued, _imageHash, msg.sender);
-        addressList.push(address(c));
-        cards[address(c)] = c;
-        Debug(address(c));
-    }
-
-    /**
-     * カードのアドレスの配列取得
-     */
-    function getCardAddressList() constant returns (address[] cardAddressList) {
-        cardAddressList = addressList;
-    }
-
-    /**
-     * カードを取得
-     */
-    function getCard(address cardAddress) constant returns (Card) {
-        Card c = cards[cardAddress];
-        return c;
-    }
-}
+pragma solidity ^0.4.13;
+import "./BuyOrder.sol";
 
 contract Card {
     // カード属性など
@@ -51,6 +17,11 @@ contract Card {
     event Debug_i(uint);
     event Debug(address c);
 
+    /**
+     * 指定数のカードを所有しているユーザーのみ
+     */
+    modifier onlyOwn(uint16 _quantity) { require(owns[msg.sender] > _quantity); _; }
+
     function Card(bytes32 _name, uint _issued, bytes32 _imageHash, address _author){
         name = _name;
         // author = msg.sender; // カードのコントラクトになってしまう
@@ -62,8 +33,23 @@ contract Card {
     }
 
     /**
-    * ownerのアドレスの配列取得
-    */
+     * カードを送る 
+     */
+    function send(address to, uint16 quantity) onlyOwn (quantity) {
+
+        address from = msg.sender;
+
+        if(!isAlreadyOwner(to)){
+            // 初オーナー
+            addressList.push(to);
+        }
+        owns[from] -= quantity;
+        owns[to] += quantity;
+    }
+
+    /**
+     * ownerのアドレスの配列取得
+     */
     function getOwnerList() constant returns (address[] ownerAddressList) {
         ownerAddressList = addressList;
     }
@@ -95,14 +81,11 @@ contract Card {
         Debug_i(s.price);
         Debug_i(msg.value); // wei
 
-        if(msg.value != s.quantity * s.price){
-            throw;
-        }
+        //入力金額の正当性チェック
+        require(msg.value == s.quantity * s.price);
 
-        if(!s.active){
-            throw;
-        }
-
+        //有効チェック
+        require(s.active);
 
         address from = s.from;
         address to = msg.sender;
@@ -133,20 +116,27 @@ contract Card {
     }
 
     /**
-    * 買い注文リスト
-    */
+     * 売り注文を終了する
+     */
+    function closeSellOrder(uint idx){
+        delete sellInfos[idx];
+    }
+
+    /**
+     * 買い注文リスト
+     */
     BuyOrder[] public buyOrders;
 
     /**
-    *  買い注文リストの要素数を返す
-    */
+     *  買い注文リストの要素数を返す
+     */
     function getBuyOrdersCount() constant returns (uint){
         return buyOrders.length;
     }
 
     /**
-    * 買い注文作成
-    */
+     * 買い注文作成
+     */
     function createBuyOrder(uint16 _quantity, uint _etherPrice) payable {
         //TODO:本番ではetherではなくweiを引数に渡す
         uint weiPrice = _etherPrice * 1 ether;
@@ -157,8 +147,8 @@ contract Card {
     }
 
     /**
-    * 買い注文に対して売る.
-    */
+     * 買い注文に対して売る.
+     */
     function sell(uint idx, uint16 quantity) payable {
         address seller = msg.sender;
         address buyer = buyOrders[idx].buyer();
@@ -171,100 +161,5 @@ contract Card {
             // 初オーナー
             addressList.push(buyer);
         }
-    }
-}
-
-/**
- * 買い注文のContract
- */
-contract BuyOrder {
-    address public buyer;
-    uint public value;
-    uint16 public quantity;
-    uint public price; // weiで指定
-
-    bool public ended;
-
-    event Debug_i(uint);
-
-    function BuyOrder(address _buyer, uint16 _quantity, uint _price) payable {
-        buyer = _buyer;
-        quantity = _quantity;
-        price = _price;
-        value = quantity * price;
-    }
-
-    /**
-    * 販売.
-    */
-    function sell(address seller, uint16 _quantity) payable {
-        require(!ended);
-        //提示カード枚数以下
-        require(quantity >= _quantity);
-        //送付
-        seller.transfer(price * _quantity);
-        value = value - price * _quantity;
-        quantity -= _quantity;
-
-        //TODO:綺麗に割り切れない場合の救済
-        if(value == 0){
-            ended = true;
-        }
-    }
-
-    /**
-    * オークション終了.
-    * 作成者のみ終了可能.
-        */
-    function close() {
-        require(msg.sender == buyer);
-        buyer.transfer(value);
-        ended = true;
-    }
-
-    /**
-    * Fallback Function
-    */
-    function () payable { }
-}
-
-// 履歴
-contract History {
-
-    address from;
-    address to;
-    address card;
-    uint32 price;
-    uint16 quantity;
-
-    function History(
-        address _from,
-        address _to,
-        address _card,
-        uint32 _price,
-        uint16 _quantity
-    ){
-        from = _from;
-        to = _to;
-        card = _card;
-        price = _price;
-        quantity = _quantity;
-    }
-
-}
-
-contract UserMaster {
-    mapping (address => User) users;
-    function add(){
-        User u = new User();
-        users[address(u)] = u;
-    }
-}
-
-// ユーザ
-contract User {
-    address[] public ownedCard;
-    address[] public activity;
-    function User(){
     }
 }
