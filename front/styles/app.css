@@ -8,7 +8,7 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
+  z-index: 399;
   & .info {
     font-size: 11px;
     margin: 0 10px;
@@ -73,8 +73,10 @@
 .toasts {
   position: fixed;
   top: 62px;
+  pointer-events: none;
+  & .toast {
+    margin-bottom: 7px;
+    pointer-events: auto;
+  }
 }
 
-.toast {
-  margin-bottom: 7px;
-}

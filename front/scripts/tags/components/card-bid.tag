@@ -41,7 +41,7 @@ card-bid
               button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 売る
         .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
           h5.inline-block.text-normal 売り注文一覧
-          .empty(if="{opts.bidInfo.length === 0}")
+          .empty(if="{opts.bidInfo && opts.bidInfo.length === 0}")
             .empty-icon
               i.icon.icon-message(style="font-size: 3rem")
             h4.empty-title 現在売り注文はありません

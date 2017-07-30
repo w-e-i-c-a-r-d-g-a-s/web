@@ -41,13 +41,22 @@ upload
             ) カードを発行
       .column.col-2.col-xs-12.col-sm-12.hide-md.hide-lg
 
+  password-modal(
+    unlock="{unlock}"
+    show="{showPasswordModal}"
+    deferred="{deferred}"
+    obs="{opts.obs}"
+  )
+
   script.
+    import Deferred from 'es6-deferred';
     import SparkMD5 from 'spark-md5';
 
     const PH_NAME = 'New Card Name';
     const PH_TS = 10;
     const PH_IMAGE_URL = 'https://www.ethereum.org/images/logos/ETHEREUM-LOGO_PORTRAIT_Black_small.png';
 
+    this.showPasswordModal = false;
     this.loading = false;
     this.enableForm = false;
     this.file = null;
@@ -60,7 +69,7 @@ upload
     };
 
     this.on('mount', () => {
-      this.card.author = this.opts.user.etherAccount;
+      this.card.author = this.user.etherAccount;
       this.update();
     });
 
@@ -70,6 +79,15 @@ upload
       if(cardName.value && totalSupply.value){
         this.loading = true;
         this.update();
+        // パスワード入力
+        try {
+          await this.inputUnlock();
+        } catch (e) {
+          // キャンセル
+          this.loading = false;
+          this.update();
+          return ;
+        }
         // 画像データアップロード
         const url = await this.firebase.uploadImage(this.file, this.fileHash);
         // console.log(url, this.card);
@@ -79,11 +97,38 @@ upload
           issued: +totalSupply.value,
           url
         });
-        await this.opts.addCard(cardName.value, totalSupply.value, this.fileHash);
+        await this._addCard(cardName.value, totalSupply.value, this.fileHash);
         this.loading = false;
         this.resetForm();
         this.update();
       }
+    }
+
+    {
+    /**
+     * カードを登録
+     */
+    async _addCard(name, totalSupply, imageHash){
+      console.log(name, totalSupply, imageHash);
+      const gas = 1599659;
+      return new Promise((resolve, reject) => {
+        try {
+          const tx = this.web3c.addCard(this.user.etherAccount, name, totalSupply, imageHash.toString(), gas);
+          this.opts.obs.trigger('notifySuccess', {
+            text: `transaction send! => ${tx}`
+          });
+          resolve();
+        }catch(e){
+          // if(e.message === 'authentication needed: password or unlock'){
+          // }
+          this.opts.obs.trigger('notifyError', {
+            text: e.message
+          });
+          reject(Error('err'));
+        }
+      });
+    }
+
     }
 
     resetForm(){
@@ -172,4 +217,34 @@ upload
         throw new Error("Something bad happened.")
       };
       reader.readAsDataURL(this.file);
+    }
+
+    /**
+     * パスワード入力モーダルを表示
+     * @returns {Promise}
+     */
+    inputUnlock(){
+      return new Promise(async (resolve, reject) => {
+        // アンロックダイアログを表示
+        const res = await this.unlockAccount();
+        if(res){
+          // アンロック処理後
+          console.log('unlocked!');
+          this.showPasswordModal = false;
+          this.update();
+          resolve();
+        }else{
+          this.showPasswordModal = false;
+          this.update();
+          reject(Error('err'));
+        }
+      });
+    }
+
+    unlockAccount(){
+      // モーダルを表示し、処理を待つ
+      this.deferred = new Deferred();
+      this.showPasswordModal = true;
+      this.update();
+      return this.deferred.promise;
     }

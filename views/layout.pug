@@ -12,9 +12,3 @@ html
       link(rel='stylesheet', href='//localhost:9000/app.css')
   body
     block content
-    if settings.env === 'production'
-      script(src="/javascripts/app.bundle.js")
-      script(src="/javascripts/vendor.bundle.js")
-    else
-      script(src="//localhost:9000/vendor.bundle.js")
-      script(src="//localhost:9000/app.bundle.js")

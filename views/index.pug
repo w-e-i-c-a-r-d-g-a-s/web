@@ -1,4 +1,13 @@
 extends layout
 
 block content
+  navbar
   app
+  toast-box
+  password-modal
+  if settings.env === 'production'
+    script(src="/javascripts/vendor.bundle.js")
+    script(src="/javascripts/app.bundle.js")
+  else
+    script(src="//localhost:9000/vendor.bundle.js")
+    script(src="//localhost:9000/app.bundle.js")

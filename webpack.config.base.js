@@ -22,7 +22,8 @@ module.exports = {
   context: path.resolve(__dirname, './front'),
   entry: {
     vendor: ['babel-polyfill', 'lodash', 'riot'],
-    app: ['./scripts/index.js']
+    app: ['./scripts/index.js'],
+    login: ['./scripts/login.js']
   },
 
   output: {

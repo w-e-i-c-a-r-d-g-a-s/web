@@ -2,3 +2,9 @@ extends layout
 
 block content
   login
+  if settings.env === 'production'
+    script(src="/javascripts/vendor.bundle.js")
+    script(src="/javascripts/login.bundle.js")
+  else
+    script(src="//localhost:9000/vendor.bundle.js")
+    script(src="//localhost:9000/login.bundle.js")

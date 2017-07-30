@@ -2,7 +2,7 @@ home
   .page.container
     .columns
       .column.col-12(if="{cards.length > 0}")
-        card(each="{card in cards}" card="{card}" go-detail="{opts.goDetail}")
+        card(each="{card in cards}" card="{card}")
       .column.col-12(if="{cards.length === 0}")
         .empty
           .empty-icon

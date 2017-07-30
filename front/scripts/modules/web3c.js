@@ -18,7 +18,6 @@ const CardABI = JSON.parse(require('../../../sol/dist/Card.abi'));
 const BuyOrderABI = JSON.parse(require('../../../sol/dist/BuyOrder.abi'));
 
 // 定数
-// const CardMasterAddress = '0xf8240cdebce4390211ddc9b775820df562364234';
 const CardMasterAddress = cardMasterAddress;
 const CardMasterContract = web3.eth.contract(CardMasterABI);
 const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
@@ -31,6 +30,7 @@ var filter = web3.eth.filter('latest');
 
 const web3c = {
   web3,
+  cardMasterAddress,
   watch(cb){
     // watch for changes
     filter.watch(function(error, result){
@@ -57,27 +57,22 @@ const web3c = {
   },
 
   // アンロック
-  unlock: (userName, password, cb = () => {}, err = () => {}) => {
-    const unlockDurationSec = 0; // 0の場合永続的
+  unlock: async (userName, password, unlockDurationSec = 0) => {
     const jsonData = createJSONdata('personal_unlockAccount',
-      [
-        userName,
-        password,
-        unlockDurationSec
-      ]
+      [ userName, password, unlockDurationSec ]
     );
-    executeJsonRpc(url, jsonData, (data) => {
-      // Success
-      if(data.error == null){
-        console.log('account unlocked! 😀', userName);
-      } else {
-        err(`login error: ${data.error.message}`);
-        return;
-      }
-      cb();
-    }, (data) => {
-      // fail
-      err(`login error`);
+
+    return new Promise((resolve, reject) => {
+      executeJsonRpc(url, jsonData).then((res) => {
+        const data = res.body;
+        if(data.error){
+          reject(new Error(data.error.message));
+        } else {
+          resolve();
+        }
+      }, (e) => {
+        reject(e);
+      });
     });
   },
 
@@ -261,15 +256,10 @@ const createJSONdata = (method, params) => ({
 });
 
 const executeJsonRpc = (url, json, s, er) => {
-  request.post(url)
+  return request.post(url)
     .set('Content-Type', 'application/json')
     .send(JSON.stringify(json))
-    .then((res) => {
-      s(res.body);
-    }, (e) => {
-      console.log(e);
-      er(e);
-    });
+
 };
 
 export default web3c;
