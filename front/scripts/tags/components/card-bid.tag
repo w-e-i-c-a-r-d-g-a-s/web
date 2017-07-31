@@ -6,7 +6,11 @@ card-bid
         button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshBidInfo}")
           i.icon.icon-refresh
     .panel-body
-      .columns
+      .empty(if="{opts.numberOfCard === 0}")
+        .empty-icon
+          i.icon.icon-message(style="font-size: 3rem")
+        h4.empty-title カードを所有していません
+      .columns(if="{opts.numberOfCard > 0}")
         .column.col-3.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-4
           .panel
             .panel-header
@@ -19,7 +23,9 @@ card-bid
                     type="number"
                     ref="quantity"
                     oninput="{changeQuantity}"
+                    class="{'is-error': quantityError}"
                   )
+                  p.form-input-hint {quantityErrorMsg}
                   label.form-label(for="input-price") 1枚あたりの価格
                   .input-group
                     input#input-price.form-input.input-sm(
@@ -81,6 +87,8 @@ card-bid
   script.
     this.wei = null;
     this.enableBid = false;
+    this.quantityError = false;
+    this.quantityErrorMsg = '';
 
     /**
      * 枚数を変更
@@ -107,7 +115,29 @@ card-bid
      * 入力値チェック
      */
     checkBidForm(){
-      this.enableBid = this.refs.quantity.value && this.refs.quantity.value > 0 && this.wei;
+      const qt = _.toNumber(this.refs.quantity.value);
+      if(qt === 0){
+        this.quantityError = false;
+        this.quantityErrorMsg = ''
+        this.enableBid = false;
+        return;
+      }
+      const isValidQt = _.isNumber(qt) && _.isInteger(qt) && qt > 0;
+      if(!isValidQt){
+        this.quantityError = true;
+        this.quantityErrorMsg = '正しい数値を入力してください'
+        this.enableBid = false;
+        return;
+      }
+      if(this.opts.numberOfCard < qt){
+        this.quantityError = true;
+        this.quantityErrorMsg = '所有枚数を超えています'
+        this.enableBid = false;
+        return;
+      }
+      this.quantityError = false;
+      this.quantityErrorMsg = ''
+      this.enableBid = isValidQt && this.wei;
     }
 
     /**

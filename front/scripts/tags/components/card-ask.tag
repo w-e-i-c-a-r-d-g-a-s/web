@@ -19,7 +19,9 @@ card-ask
                     type="number"
                     ref="askQuantity"
                     oninput="{changeAskQuantity}"
+                    class="{'is-error': quantityError}"
                   )
+                  p.form-input-hint {quantityErrorMsg}
                 .form-group
                   label.form-label(for="input-ask-price") 一枚あたりの価格
                   .input-group
@@ -93,6 +95,8 @@ card-ask
   script.
     this.wei = null;
     this.enableAsk = false;
+    this.quantityError = false;
+    this.quantityErrorMsg = '';
 
     /**
      * 枚数を変更
@@ -119,8 +123,28 @@ card-ask
      * 入力値チェック
      */
     checkAskForm(){
+      if(this.refs.askQuantity.value === ''){
+        this.quantityError = false;
+        this.quantityErrorMsg = ''
+        this.enableAsk = false;
+        return;
+      }
       const qt = _.toNumber(this.refs.askQuantity.value);
       const isValidQt = _.isNumber(qt) && _.isInteger(qt) && qt > 0;
+      if(!isValidQt || qt === 0){
+        this.quantityError = true;
+        this.quantityErrorMsg = '正しい数値を入力してください'
+        this.enableAsk = false;
+        return;
+      }
+      if(this.opts.issued < qt){
+        this.quantityError = true;
+        this.quantityErrorMsg = '発行枚数を超えています'
+        this.enableAsk = false;
+        return;
+      }
+      this.quantityError = false;
+      this.quantityErrorMsg = ''
       this.enableAsk = isValidQt && this.wei;
     }
 

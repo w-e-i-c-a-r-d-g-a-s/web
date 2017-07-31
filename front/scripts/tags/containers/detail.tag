@@ -16,6 +16,7 @@ detail
           bid-info="{card.bidInfo}"
           select-bid="{selectBid}"
           bid-id="{bidId}"
+          number-of-card="{numberOfCard}"
         )
         card-ask(
           ask="{ask}"
@@ -24,6 +25,7 @@ detail
           select-ask="{selectAsk}"
           ask-id="{askId}"
           accept-ask="{acceptAsk}"
+          issued="{card.issued}"
         )
     password-modal(
       unlock="{unlock}"
@@ -42,11 +44,19 @@ detail
     };
 
     this.showPasswordModal = false;
+    // 自身の保有枚数
+    this.numberOfCard = 0;
 
     this.on('mount', async () => {
       this.card = this.web3c.getCard(this.opts.cardAddress);
       const cardData = await this.firebase.getCard(this.card.imageHash);
       this.card.imageUrl = cardData.url;
+
+      // 自身の保有枚数導出
+      const owned = this.card.owners.find((own) => {
+        return own.address === this.user.etherAccount
+      })
+      this.numberOfCard = owned ? owned.num : 0;
       this.update();
     });
 
