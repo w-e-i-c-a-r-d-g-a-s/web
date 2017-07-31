@@ -151,14 +151,18 @@ card-ask
       }
     }
 
-    acceptAsk(){
+    async acceptAsk(){
       const { buyOrderQuantity } = this.refs;
       if(buyOrderQuantity.value){
-        this.opts.acceptAsk(buyOrderQuantity.value);
-        // チェック、入力をリセット
-        buyOrderQuantity.value = '';
-        this.opts.askInfo.map((s, i) => s.selected = false);
-        this.opts.selectAsk(null);
-        this.update();
+        try {
+          await this.opts.acceptAsk(buyOrderQuantity.value);
+          // チェック、入力をリセット
+          buyOrderQuantity.value = '';
+          this.opts.askInfo.map((s, i) => s.selected = false);
+          this.opts.selectAsk(null);
+          this.update();
+        } catch(e) {
+          return;
+        }
       }
     }

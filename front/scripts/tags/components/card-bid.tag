@@ -141,10 +141,14 @@ card-bid
       this.update();
     }
 
-    acceptBid(){
-      this.opts.acceptBid();
-      // チェックをリセット
-      this.opts.bidInfo.map((s, i) => s.selected = false);
-      this.opts.selectBid(null);
-      this.update();
+    async acceptBid(){
+      try {
+        await this.opts.acceptBid();
+        // チェックをリセット
+        this.opts.bidInfo.map((s, i) => s.selected = false);
+        this.opts.selectBid(null);
+        this.update();
+      } catch (e) {
+        // noop
+      }
     }
