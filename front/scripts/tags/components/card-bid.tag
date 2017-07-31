@@ -60,7 +60,7 @@ card-bid
                   value="{i}"
                   checked="{o.selected}"
                   onchange="{parent.opts.selectBid}"
-                  if="{o.from !== parent.opts.user.etherAccount.toLowerCase()}"
+                  if="{o.from !== parent.user.etherAccount.toLowerCase()}"
                 )
               td
                 .tile.tile-centered
@@ -113,15 +113,19 @@ card-bid
     /**
      * 売り注文(bid)を発行
      */
-    bid(e){
+    async bid(e){
       e.preventDefault();
-      const {quantity, price} = this.refs;
+      const {quantity, price, wei} = this.refs;
       if(quantity.value && this.wei){
-        this.opts.bid(+quantity.value, this.wei.toNumber());
-        quantity.value = '';
-        price.value = '';
-        this.wei = null;
-        this.checkBidForm();
+        try {
+          await this.opts.bid(+quantity.value, this.wei.toNumber());
+          quantity.value = price.value =  wei.value = '';
+          this.wei = null;
+          this.checkBidForm();
+          this.update();
+        } catch (e) {
+          return;
+        }
       }
     }
 
@@ -129,7 +133,7 @@ card-bid
      * 行を選択
      */
     selectRow(e){
-      if(e.item.o.from === this.opts.user.etherAccount.toLowerCase()){
+      if(e.item.o.from === this.user.etherAccount.toLowerCase()){
         return;
       }
       this.opts.bidInfo.map((s, i) => s.selected = i === e.item.i);

@@ -109,7 +109,7 @@ upload
      * カードを登録
      */
     async _addCard(name, totalSupply, imageHash){
-      console.log(name, totalSupply, imageHash);
+      // console.log(name, totalSupply, imageHash);
       const gas = 1599659;
       return new Promise((resolve, reject) => {
         try {

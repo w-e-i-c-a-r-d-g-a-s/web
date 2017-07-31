@@ -1,5 +1,5 @@
 card
-  .card.inline-block.td-card(onclick="{() => location.href = '#/cards/' + this.opts.card.address}" class="{'-single': opts.single}")
+  .card.inline-block.td-card(onclick="{goDetail}" class="{'-single': opts.single}")
     .card-image
       img.img-fit-cover.image(if="{opts.card.imageUrl}" src="{opts.card.imageUrl}")
       .image.loading(if="{!opts.card.imageUrl}")
@@ -18,3 +18,9 @@ card
               img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[opts.card.author] }")
             .tile-content.inline-block.text-ellipsis.addr {opts.card.author}
   script.
+    goDetail(){
+      if(this.opts.single){
+        return;
+      }
+      location.href = '#/cards/' + this.opts.card.address;
+    }

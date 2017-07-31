@@ -76,7 +76,8 @@ firebase.firebase.isLoggedIn().then((_user) => {
     route('/cards/*', function(cardAddress) {
       console.log('route is card detail', cardAddress);
       riot.mount('app', 'detail', {
-        cardAddress
+        cardAddress,
+        obs
       });
     });
 

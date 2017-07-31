@@ -66,7 +66,7 @@ card-ask
                   value="{i}"
                   checked="{o.selected}"
                   onchange="{parent.opts.selectSell}"
-                  if="{o.buyer !== parent.opts.user.etherAccount.toLowerCase()}"
+                  if="{o.buyer !== parent.user.etherAccount.toLowerCase()}"
                 )
               td
                 .tile.tile-centered
@@ -128,7 +128,7 @@ card-ask
      * 買い注文を選択
      */
     selectBuyOrderRow(e){
-      if(e.item.o.buyer === this.opts.user.etherAccount.toLowerCase()){
+      if(e.item.o.buyer === this.user.etherAccount.toLowerCase()){
         return;
       }
       this.opts.askInfo.map((s, i) => s.selected = i === e.item.i);
@@ -136,14 +136,18 @@ card-ask
       this.update();
     }
 
-    ask(){
-      const { askQuantity, askPrice } = this.refs;
+    async ask(){
+      const { askQuantity, askPrice, askWei } = this.refs;
       if(askQuantity.value && this.wei){
-        this.opts.ask(askQuantity.value, this.wei.toNumber());
-        askQuantity.value = '';
-        askPrice.value = '';
-        this.wei = null;
-        this.checkAskForm();
+        try {
+          await this.opts.ask(askQuantity.value, this.wei.toNumber());
+          askQuantity.value = askPrice.value = askWei.value = '';
+          this.wei = null;
+          this.checkAskForm();
+          this.update();
+        } catch(e) {
+          return;
+        }
       }
     }
 
