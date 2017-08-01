@@ -9,6 +9,15 @@ detail
             card-owners(card="{card}")
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
+        card-ask(
+          ask="{ask}"
+          refresh-ask-info="{refreshAskInfo}"
+          ask-info="{card.askInfo}"
+          select-ask="{selectAsk}"
+          ask-id="{askId}"
+          accept-ask="{acceptAsk}"
+          issued="{card.issued}"
+        )
         card-bid(
           accept-bid="{acceptBid}"
           bid="{bid}"
@@ -18,14 +27,9 @@ detail
           bid-id="{bidId}"
           number-of-card="{numberOfCard}"
         )
-        card-ask(
-          ask="{ask}"
-          refresh-ask-info="{refreshAskInfo}"
-          ask-info="{card.askInfo}"
-          select-ask="{selectAsk}"
-          ask-id="{askId}"
-          accept-ask="{acceptAsk}"
-          issued="{card.issued}"
+        card-send(
+          send="{send}"
+          number-of-card="{numberOfCard}"
         )
     password-modal(
       unlock="{unlock}"
@@ -229,4 +233,32 @@ detail
       this.showPasswordModal = true;
       this.update();
       return this.deferred.promise;
+    }
+
+    /**
+     * カードを配布
+     * @param {number} quantity 数量
+     * @param {string} receiver 受信者のアドレス
+     */
+    send(quantity, receiver){
+      const gas = 200000;
+      const { address } = this.card;
+      const { etherAccount } = this.user;
+      return new Promise(async (resolve, reject) => {
+        try {
+          await this.inputUnlock();
+          try{
+            const tx = this.web3c.send(etherAccount, address, quantity, receiver, gas);
+            this.opts.obs.trigger('notifySuccess', {
+              text: `transaction send! => ${tx}`
+            });
+            resolve();
+          }catch(e){
+            this.opts.obs.trigger('notifyError', { text: e.message });
+            reject();
+          }
+        }catch(e){
+          reject();
+        }
+      });
     }

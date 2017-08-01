@@ -1,5 +1,5 @@
 card-ask
-  .panel
+  .panel.mb-10
     .panel-header
       .panel-title
         | カードを買いたい

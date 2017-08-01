@@ -244,6 +244,20 @@ const web3c = {
     const value = web3.fromWei(buyOrder.price(), 'ether').mul(quantity).toNumber();
     // console.log(bidIndex, quantity, { gas, value });
     return card.sell(bidIndex, quantity, { gas, value });
+  },
+
+  /**
+   * カード送信
+   * @param {string} account 送信者
+   * @param {string} cardAddress カードアドレス
+   * @param {number} quantity 数量
+   * @param {string} receiver 受領者
+   * @param {number} gas gas
+   */
+  send(account, cardAddress, quantity, receiver, gas){
+    web3.eth.defaultAccount = account;
+    const card = CardContract.at(cardAddress);
+    return card.send(receiver, quantity, { gas });
   }
 
 };
