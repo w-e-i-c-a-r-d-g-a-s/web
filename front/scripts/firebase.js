@@ -155,6 +155,50 @@ export default {
             reject(Error(err.message));
           });
       });
+    },
+
+
+    getHistories(){
+      const ref = firebase.database().ref('histories');
+      return new Promise((resolve, reject) => {
+        ref.orderByKey().limitToLast(10)
+          .once('value', (snapshot) => {
+            const res = [];
+            snapshot.forEach((data) => {
+              res.push(data.val());
+            });
+            resolve(res);
+          });
+      });
+    },
+
+    getNotifications(){
+      const ref = firebase.database().ref('notifies');
+      return new Promise((resolve, reject) => {
+        ref.orderByKey().limitToLast(10)
+          .once('value', (snapshot) => {
+            const res = [];
+            snapshot.forEach((data) => {
+              res.push(data.val());
+            });
+            resolve(res);
+          });
+      });
+    },
+
+    getNotificationCount(){
+      const refNotification = firebase.database().ref('notifies');
+      const refHistories = firebase.database().ref('histories');
+      let num = 0;
+      return new Promise((resolve, reject) => {
+        refNotification.orderByKey().limitToLast(10).once('value', (snapshot) => {
+          num = snapshot.numChildren();
+          refHistories.orderByKey().limitToLast(10).once('value', (snapshot) => {
+            num += snapshot.numChildren();
+            resolve(num);
+          });
+        });
+      });
     }
   }
 };

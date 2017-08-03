@@ -115,4 +115,10 @@ NODE_ENV=production node bin/www
 
 で本番サーバを立てます。
 
+監視アプリ(β）の起動
+
+```
+NODE_ENV=production pm2 start guard.js
+```
+
 
