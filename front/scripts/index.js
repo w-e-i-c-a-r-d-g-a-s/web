@@ -33,31 +33,6 @@ firebase.firebase.isLoggedIn().then((_user) => {
     // オブザーバーオブジェクト
     const obs = riot.observable();
 
-    // filterの監視
-    web3c.watch((res) => {
-      console.log(res);
-      const { tx, receipt, isError, txIndex } = res;
-      // 自分が発行したtxの場合は通知
-      if(user.etherAccount === tx.from){
-        let text = '';
-        if(isError){
-          text = res.errorMsg;
-          obs.trigger('notifyError', {
-            text
-          });
-        } else {
-          text = `🔨mined! (${txIndex}) => blockNumber: ${tx.blockNumber},
-                    value: ${tx.value.toString(10)},
-                    gasUsed: ${receipt.gasUsed},
-                    gas: ${tx.gas}`;
-          obs.trigger('notifySuccess', {
-            text
-          });
-        }
-      }
-    });
-
-
     riot.mixin({user});
     riot.mixin({web3c});
     riot.mixin(firebase);

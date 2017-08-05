@@ -25,36 +25,9 @@ const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
 const CardContract = web3.eth.contract(CardABI);
 const BuyOrderContract = web3.eth.contract(BuyOrderABI);
 
-var filter = web3.eth.filter('latest');
-
-
 const web3c = {
   web3,
   cardMasterAddress,
-  watch(cb){
-    // watch for changes
-    filter.watch(function(error, result){
-      if (error) {
-        console.alert(error);
-        return;
-      }
-      // console.log(result);
-      const block = web3.eth.getBlock(result, true);
-      if(block.transactions.length > 0){
-        block.transactions.forEach((tx, i) => {
-          var receipt = web3.eth.getTransactionReceipt(tx.hash);
-          console.log(tx, receipt);
-          // 注 指定したgasとgasUsedがドンピシャだと成功したことになっている
-          if(receipt.gasUsed === tx.gas){
-            const errorMsg = `Transaction failed (out of gas, thrown) ${receipt.gasUsed}`;
-            cb({ isError: true, errorMsg, receipt, tx, txIndex: i });
-            return;
-          }
-          cb({ isError: false, receipt, tx, txIndex: i });
-        });
-      }
-    });
-  },
 
   // アンロック
   unlock: async (userName, password, unlockDurationSec = 0) => {
