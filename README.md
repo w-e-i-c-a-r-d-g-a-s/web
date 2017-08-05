@@ -101,19 +101,40 @@ $ DEBUG=td:* nodemon bin/www
 
 ## Production
 
-フロントエンドをビルドする
+ディレクトリ構成
+
+* `~/td-demo/` アプリの本体
+* `~/ethereum-td/` gethのディレクトリ
+
+pullし、solc・フロントエンドをビルドする
 
 ```
+$ cd td-demo
+$ git pull
+$ yarn install
+$ npm run solc
 $ npm run build
 ```
 
 `public`にjs, cssが作成されます。
 
+
+#### gethの起動
+
 ```
-NODE_ENV=production node bin/www
+vim ~/geth.sh
+
+sh ~/geth.sh
 ```
 
+```
+$ NODE_ENV=production pm2 start td-demo/bin/www
+# 8080ポートになる
+# リスタートしたい場合は
+$ pm2 restart www
+```
 で本番サーバを立てます。
+
 
 監視アプリ(β）の起動
 
