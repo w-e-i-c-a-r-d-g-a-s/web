@@ -7,7 +7,8 @@ activity
         .timeline
           .timeline-item(each="{act in dispActivities}")
             .timeline-left
-              .timeline-icon.icon-lg
+              .timeline-icon(if="{act.activities[0].receipt.from !== user.etherAccount}")
+              .timeline-icon.icon-lg(if="{act.activities[0].receipt.from === user.etherAccount}")
                 i.icon.icon-time
             .timeline-content
               .tile
@@ -108,23 +109,31 @@ activity
      * @returns {string} テキスト
      */
     getActivityText(activity) {
-      const { inputMethod, inputArgs } = activity;
+      const { inputMethod, inputArgs, receipt } = activity;
       let res = '';
+      const {from} = receipt;
+      const _from = isMine ? '' : `${from.slice(0,8)}... が`;
+      const isMine = from === this.user.etherAccount;
       switch (inputMethod) {
         case 'sellOrder':
-          res = `${this.web3c.web3.fromWei(inputArgs[1], 'ether')}ETH で ${inputArgs[0]}枚 の売り注文を作成しました`
+          res = `${_from}${this.web3c.web3.fromWei(inputArgs[1], 'ether')}ETH で ${inputArgs[0]}枚 の売り注文を作成しました`
           break;
         case 'createBuyOrder':
-          res = `${inputArgs[1]}ETH で ${inputArgs[0]}枚 の買い注文を作成しました`
+          res = `${_from}${inputArgs[1]}ETH で ${inputArgs[0]}枚 の買い注文を作成しました`
           break;
         case 'sell':
           const index = inputArgs[0];
-          const buyOrder = this.web3c.getBuyOrder(activity.card.address, index);
+          const buyOrder = this.web3c.getAsk(activity.card.address, index);
           const price = this.web3c.web3.fromWei(buyOrder.price().toNumber(), 'ether');
-          res = `${buyOrder.buyer()} へ ${price}ETH で ${inputArgs[1]}枚 売却しました`
+          res = `${_from}${buyOrder.buyer().slice(0,8)}... へ ${price}ETH で ${inputArgs[1]}枚 売却しました`
           break;
         case 'send':
-          res = `${inputArgs[0]} へ ${inputArgs[1]}枚 配布しました`
+          res = `${_from}${inputArgs[0].slice(0,8)}... へ ${inputArgs[1]}枚 配布しました`
+          break;
+        case 'buy':
+          const bid = this.web3c.getBid(activity.card.address, inputArgs[0]);
+          const _price = this.web3c.web3.fromWei(bid[2].toNumber(), 'ether');
+          res = `${_from}${bid[0].slice(0, 8)}...から${_price}ETHで${bid[1].toNumber()}枚 購入しました`
           break;
         case 'addCard':
           res = `${inputArgs[0]} を ${inputArgs[1]}枚 発行しました`

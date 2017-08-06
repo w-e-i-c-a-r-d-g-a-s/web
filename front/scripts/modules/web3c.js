@@ -190,6 +190,16 @@ const web3c = {
     return bidInfo;
   },
 
+  /**
+   * 売り注文情報を取得
+   * @param {string} cardAddress カードアドレス
+   * @param {number} bidIndex 売り注文インデックス
+   */
+  getBid(cardAddress, bidIndex){
+    const card = CardContract.at(cardAddress);
+    return card.sellInfos(bidIndex);
+  },
+
   ask(account, cardAddress, quantity, price, gas,){
     // console.log(account, cardAddress, quantity, gas, price);
     web3.eth.defaultAccount = account;
@@ -245,11 +255,11 @@ const web3c = {
   /**
    * 買い注文情報を取得
    * @param {string} cardAddress カードアドレス
-   * @param {number} bidIndex 買い注文インデックス
+   * @param {number} askIndex 買い注文インデックス
    */
-  getBuyOrder(cardAddress, bidIndex){
+  getAsk(cardAddress, askIndex){
     const card = CardContract.at(cardAddress);
-    return BuyOrderContract.at(card.buyOrders(bidIndex));
+    return BuyOrderContract.at(card.buyOrders(askIndex));
   },
 
   /**
