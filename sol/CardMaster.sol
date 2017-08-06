@@ -17,6 +17,7 @@ contract CardMaster {
         Card c = new Card(_name, _issued, _imageHash, msg.sender);
         addressList.push(address(c));
         cards[address(c)] = c;
+        // 履歴用にアドレスを返す
         Debug(address(c));
     }
 
