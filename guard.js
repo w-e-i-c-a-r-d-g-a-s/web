@@ -4,7 +4,7 @@ const Web3 = require('web3')
 const admin = require("firebase-admin");
 const etherSetting = require('./etherSetting.json');
 const serviceAccount = require("./serviceAccountKey.json");
-const { adminAddress, cardMasterAddress, rpcEndpoint } = etherSetting;
+const { adminAddress, cardMasterAddress, rpcEndpointLocal } = etherSetting;
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -27,15 +27,14 @@ require.extensions['.signatures'] = (module, filename) => {
   module.exports = kv;
 };
 
-const url = 'http://localhost:8545';
-const backwordNum = 11;
+const backwordNum = 0;
 
 let web3;
 if (typeof web3 !== 'undefined') {
   web3 = new Web3(web3.currentProvider);
 } else {
   // set the provider you want from Web3.providers
-  web3 = new Web3(new Web3.providers.HttpProvider(url));
+  web3 = new Web3(new Web3.providers.HttpProvider(rpcEndpointLocal));
 }
 
 const CardMasterABI = JSON.parse(require('./sol/dist/CardMaster.abi'));
@@ -50,12 +49,15 @@ const CardABI = JSON.parse(require('./sol/dist/Card.abi'));
 const CardBIN = `0x${require('./sol/dist/Card.bin')}`;
 const CardSIG = require('./sol/dist/Card.signatures');
 
+const CardContract = web3.eth.contract(CardABI);
+// const BuyOrderContract = web3.eth.contract(BuyOrderABI);
+
 let cardAddresses = CardMasterInstance.getCardAddressList();
 
-// メソッド定義を返す
+// メソッド名を返す
 const getMethod = (input, signatures) => {
   const method = input.slice(0, 10);
-  return signatures[method.slice(2)];
+  return signatures[method.slice(2)].replace(/\(.+\)/, '');
 };
 
 // 引数解析
@@ -90,64 +92,144 @@ const getArguments = (input, signatures) => {
   return argsData;
 };
 
-// カード発行
-const putHistory = (tx, receipt, signatures, documentName) => {
-  const { blockHash, blockNumber, gas, gasPrice, hash, to, from, value } = tx;
+
+const setTransactionRecord = (hash, data) => {
+  const documentName = 'transactions';
+  const newHistoryKey = database.ref().child(`${documentName}/${hash}`)
+    .set(data).then(() => {
+      console.log('put history');
+    }).catch((e) => {
+      console.log(e);
+    });
+};
+
+// トランザクション登録
+const setTransaction = (tx) => {
+  const receipt = web3.eth.getTransactionReceipt(tx.hash);
+  const { timestamp } = web3.eth.getBlock(tx.blockNumber);
+  const { gas, gasPrice, hash, value, transactionIndex } = tx;
   const { gasUsed } = receipt;
 
-  const newHistoryKey = database.ref().child(documentName).push().set({
-    blockHash,
-    blockNumber,
-    gas,
-    gasPrice: gasPrice.toNumber(),
-    gasUsed,
-    hash,
-    to,
-    from,
-    value: value.toNumber(),
-    inputRaw: tx.input,
-    inputMethod: getMethod(tx.input, signatures),
-    inputArgs: getArguments(tx.input, signatures)
-  }).then((data) => {
-    console.log('put history');
-  }).catch((e) => {
-    console.log(e);
-  });
+
+  // カードかカーマスターかの判定
+  if(cardMasterAddress === tx.to){
+    const txData = {
+      gas,
+      gasPrice: gasPrice.toNumber(),
+      gasUsed,
+      value: value.toNumber(),
+      inputRaw: tx.input,
+      inputMethod: getMethod(tx.input, CardMasterSIG),
+      inputArgs: getArguments(tx.input, CardMasterSIG),
+      timestamp,
+      // データを時系列昇順で並べられるようにする
+      sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex)
+    };
+    console.log('カードマスタに関する実行');
+
+    // カードのログデータを作成
+    // カードのアドレスがlogsにあるがこれでいいのか・・・？？
+    const logData = receipt.logs[0].data;
+    const cardAddress = `0x${logData.slice(26)}`;
+    // カードにtxを追加
+    const caRef = database.ref(`cardAccounts/${cardAddress}/txs/${hash}`)
+    caRef.set(txData);
+    // ユーザに登録
+    const card = CardContract.at(cardAddress);
+    // カードの所有者を導出
+    const owners = card.getOwnerList().filter((address) => {
+      return +card.owns(address).toString(10) > 0;
+    });
+    const accRef = database.ref().child('accounts');
+    const payload = {};
+    owners.forEach((addr) => {
+      payload[`${addr}/txs/${hash}`] = txData;
+    });
+    accRef.update(payload);
+    // 履歴データに書き込み
+    setTransactionRecord(hash, txData);
+  }
+
+  if (cardAddresses.indexOf(tx.to) >= 0) {
+    console.log('カードに関する');
+    const txData = {
+      gas,
+      gasPrice: gasPrice.toNumber(),
+      gasUsed,
+      value: value.toNumber(),
+      inputRaw: tx.input,
+      inputMethod: getMethod(tx.input, CardSIG),
+      inputArgs: getArguments(tx.input, CardSIG),
+      timestamp,
+      sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex)
+    };
+    // 関連するユーザ
+    // tx.toを1枚入以上所有しているユーザ
+    const card = CardContract.at(tx.to);
+    // カードの所有者を導出
+    const owners = card.getOwnerList().filter((address) => {
+      return +card.owns(address).toString(10) > 0;
+    });
+    // console.log(owners);
+
+    const accRef = database.ref().child('accounts');
+    const payload = {};
+    owners.forEach((addr) => {
+      payload[`${addr}/txs/${hash}`] = txData;
+    });
+    accRef.update(payload);
+
+    // 関連するカードに設定
+    const caRef = database.ref(`cardAccounts/${tx.to}/txs/${hash}`)
+    caRef.set(txData);
+    // 履歴データに書き込み
+    setTransactionRecord(hash, txData);
+  }
+
 };
+
+/*
+setTransaction({
+  blockHash: '0xb51471f27c760c9c363503883e589d63cd87cbde6fe848740aedb1356f6aac58',
+  blockNumber: 32199,
+  from: '0x0f6fc65c0a544ecd6f9d31894c8e9e193c3b7fd4',
+  gas: 200000,
+  gasPrice:  web3.toBigNumber(18000000000),
+  hash: '0x8d3838d7f582fcb622bf2c857dd290138086dbf0dbed0a345d3c12baff1d6c32',
+  input: '0xcd61a95a00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000de0b6b3a7640000',
+  nonce: 36,
+  to: '0x7410c7d6a3e8ae7b5788335b82cfb97ed73ef561',
+  transactionIndex: 0,
+  value: web3.toBigNumber(0)
+});
+
+setTransaction({
+  blockHash: '0x71510047fff611f0ba4e740a4f29a9c817e09a10c34d48793188bc76a2c8cd91',
+  blockNumber: 32200,
+  from: '0x0f6fc65c0a544ecd6f9d31894c8e9e193c3b7fd4',
+  gas: 1599659,
+  gasPrice:  web3.toBigNumber(18000000000),
+  hash: '0x83b48babc68ead2673a02e09b004d928ae45634bfe0d75ff2e1e8808c59f1ff6',
+  input: '0x1dc6ad0b4c424f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000703562393430616438323539313366643539663963333434343465643335643337',
+  to: '0xb3c975dfbf25486c39975ee98736c4d81d37d092',
+  transactionIndex: 0,
+  value: web3.toBigNumber(0)
+});
+*/
 
 let filter = web3.eth.filter('latest')
 filter.watch(function(error) {
   if (error) {
+    console.log(error);
     return;
   }
 
   // 確定したブロックを参照するため、ある程度遡ったブロックを参照
   const confirmedBlock = web3.eth.getBlock(web3.eth.blockNumber - backwordNum);
-
+  console.log("block =>", confirmedBlock.hash, confirmedBlock.transactions.length);
   confirmedBlock.transactions.forEach(function(txId) {
-    let tx = web3.eth.getTransaction(txId)
-
-    // カード発行などカードマスターに関するtx
-    if(cardMasterAddress === tx.to){
-      const receipt = web3.eth.getTransactionReceipt(tx.hash);
-      // カードアドレスをアップデート
-      cardAddresses = CardMasterInstance.getCardAddressList();
-      console.log('カード発行');
-      console.log(tx);
-      console.log('---------------------------------');
-      console.log(receipt);
-      putHistory(tx, receipt, CardMasterSIG, 'histories');
-    }
-
-    // カード売買などカードに関するtx
-    if (cardAddresses.indexOf(tx.to) >= 0) {
-      const receipt = web3.eth.getTransactionReceipt(tx.hash);
-      console.log('カード売買');
-      console.log(tx);
-      console.log('---------------------------------');
-      console.log(receipt);
-      putHistory(tx, receipt, CardSIG, 'notifies');
-    }
-
+    const tx = web3.eth.getTransaction(txId);
+    setTransaction(tx);
   })
-})
+});
+console.log('watch start');
