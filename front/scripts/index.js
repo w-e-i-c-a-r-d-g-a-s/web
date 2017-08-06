@@ -14,6 +14,7 @@ import './tags/components/card-send.tag';
 import './tags/components/card-ask.tag';
 import './tags/containers/home.tag';
 import './tags/containers/mycards.tag';
+import './tags/containers/activity.tag';
 import './tags/containers/upload.tag';
 import './tags/containers/detail.tag';
 import './tags/containers/admin.tag';
@@ -85,6 +86,11 @@ firebase.firebase.isLoggedIn().then((_user) => {
     route('upload', () => {
       console.log('route is upload');
       riot.mount('app', 'upload', {obs});
+    });
+
+    route('activity', () => {
+      console.log('route is activity');
+      riot.mount('app', 'activity', {obs});
     });
 
     route('admin', () => {

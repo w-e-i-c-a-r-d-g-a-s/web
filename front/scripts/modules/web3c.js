@@ -1,4 +1,5 @@
 import Web3 from 'web3';
+import _ from 'lodash';
 import ethers from 'ethers';
 import request from 'superagent';
 import { adminAddress, cardMasterAddress, rpcEndpoint } from '../../../etherSetting.json';
@@ -91,6 +92,22 @@ const web3c = {
     return account ? cards.filter((c) => {
       return c.card.getOwnerList().filter((address) => address === account && c.card.owns(address).toNumber() > 0).length > 0;
     }) : cards;
+  },
+
+  /**
+   * イメージハッシュからカードデータを取得
+   * ※ 重いです
+   *
+   * @param {string} imageHash イメージハッシュの文字列
+   * @returns {object} カードデータ
+   */
+  getCardByImageHash(imageHash){
+    const cards = CardMasterInstance.getCardAddressList();
+    const hitAddress = _.find(cards, (address) => {
+      const card = CardContract.at(address);
+      return imageHash === web3.toAscii(card.imageHash());
+    });
+    return CardContract.at(hitAddress);
   },
 
   // カード情報を取得
@@ -210,6 +227,12 @@ const web3c = {
     return this.getAskInfo(card);
   },
 
+  /**
+   * 買い注文に対して売る
+   * @param {string} account 送信者
+   * @param {string} cardAddress カードアドレス
+   * @param {number} bidIndex 買い注文インデックス
+   */
   acceptAsk(account, cardAddress, bidIndex, quantity, gas){
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
@@ -217,6 +240,16 @@ const web3c = {
     const value = web3.fromWei(buyOrder.price(), 'ether').mul(quantity).toNumber();
     // console.log(bidIndex, quantity, { gas, value });
     return card.sell(bidIndex, quantity, { gas, value });
+  },
+
+  /**
+   * 買い注文情報を取得
+   * @param {string} cardAddress カードアドレス
+   * @param {number} bidIndex 買い注文インデックス
+   */
+  getBuyOrder(cardAddress, bidIndex){
+    const card = CardContract.at(cardAddress);
+    return BuyOrderContract.at(card.buyOrders(bidIndex));
   },
 
   /**

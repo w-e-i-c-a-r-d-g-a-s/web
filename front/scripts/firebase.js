@@ -27,12 +27,14 @@ firebase.auth().getRedirectResult().then(function(result) {
   console.log(error);
 });
 
-// アドレスと画像の紐付け
+// TODO アドレスと画像の紐付け
 const addressToPhotoUrl = {};
 const res = firebase.database().ref('users').limitToLast(100);
-res.on('child_added', (ss) => {
-  const val = ss.val();
-  addressToPhotoUrl[val.etherAccount] = val.photoURL;
+res.once('value', (ss) => {
+  ss.forEach((s) => {
+    const val = s.val();
+    addressToPhotoUrl[val.etherAccount] = val.photoURL;
+  });
 });
 
 export default {
@@ -157,48 +159,37 @@ export default {
       });
     },
 
-
-    getHistories(){
-      const ref = firebase.database().ref('histories');
-      return new Promise((resolve, reject) => {
-        ref.orderByKey().limitToLast(10)
-          .once('value', (snapshot) => {
-            const res = [];
-            snapshot.forEach((data) => {
-              res.push(data.val());
-            });
-            resolve(res);
-          });
-      });
+    /**
+     * ユーザに紐づく履歴情報を取得
+     * @param {string} etherAccount 履歴を取得したいアカウント
+     * @param {number} latestSortKey 最後のソートキーの値
+     * @returns {object} ref
+     */
+    getUserTransactionsRef(etherAccount, latestSortKey){
+      let ref = firebase.database()
+        .ref(`accounts/${etherAccount}/txs`)
+        .orderByChild("sortKey")
+        .limitToFirst(5);
+      // 次のデータを所得する場合
+      if(latestSortKey){
+        ref = ref.startAt(latestSortKey + 1)
+      }
+      return ref;
     },
 
-    getNotifications(){
-      const ref = firebase.database().ref('notifies');
-      return new Promise((resolve, reject) => {
-        ref.orderByKey().limitToLast(10)
-          .once('value', (snapshot) => {
-            const res = [];
-            snapshot.forEach((data) => {
-              res.push(data.val());
-            });
-            resolve(res);
-          });
-      });
-    },
-
-    getNotificationCount(){
-      const refNotification = firebase.database().ref('notifies');
-      const refHistories = firebase.database().ref('histories');
-      let num = 0;
-      return new Promise((resolve, reject) => {
-        refNotification.orderByKey().limitToLast(10).once('value', (snapshot) => {
-          num = snapshot.numChildren();
-          refHistories.orderByKey().limitToLast(10).once('value', (snapshot) => {
-            num += snapshot.numChildren();
-            resolve(num);
+    /**
+     * カードに紐づく履歴情報を取得
+     * @param {string} cardAddress 履歴を取得したいカードアドレス
+     * @returns {object} ref
+     */
+    getCardTransactions(cardAddress){
+      const accRef = firebase.database().ref(`cardAccounts/${cardAddress}/txs`);
+      accRef.orderByChild("timestamp").limitToLast(5).once('value')
+        .then((snapshots) => {
+          snapshots.forEach((ss) =>{
+            console.log(ss.key,ss.val());
           });
         });
-      });
     }
   }
 };
