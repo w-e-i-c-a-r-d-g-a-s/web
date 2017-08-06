@@ -64,6 +64,7 @@ navbar
                     a(href="#/cards/{notify.cardInfo.address}") {notify.cardInfo.name}
                     | 」を{ notify.methodName } しました。
             .panel-footer
+        span 1ETH = &yen;{etherJPY}
         a.btn.btn-link(href="#/admin") Admin
         a.btn.btn-link(href="#/setting") Setting
         button.btn.btn-link(onclick="{logout}") Logout
@@ -115,7 +116,12 @@ navbar
         this.notifies = [];
       }
     }
+    this.etherJPY = null;
 
+    opts.obs.on('updateEthPrice', (({ etherJPY }) => {
+      this.etherJPY = etherJPY;
+      this.update();
+    }));
     /**
      * ログアウト処理
      */

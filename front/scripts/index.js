@@ -1,3 +1,6 @@
+import request from 'superagent';
+import route from 'riot-route';
+
 import '../styles/app.css';
 
 //tags
@@ -18,7 +21,6 @@ import './tags/containers/setting.tag';
 import './tags/containers/toast-box.tag';
 import './tags/components/password-modal.tag';
 
-import route from 'riot-route';
 // modules
 import firebase from './firebase'
 import web3c from './modules/web3c'
@@ -33,10 +35,28 @@ firebase.firebase.isLoggedIn().then((_user) => {
     // オブザーバーオブジェクト
     const obs = riot.observable();
 
+    // Eth -> JPY 変換API
+    const ethAPI = 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=JPY'
+    const updateEthPrice = () => {
+      request('GET', ethAPI).then((data) => {
+        obs.trigger('updateEthPrice', {
+          etherJPY: data.body.JPY
+        });
+      }).catch(() => {
+        console.alert('cant get ethAPI');
+      })
+    };
+
+    // 1分に1回くらいリクエストする
+    setInterval(() => {
+      updateEthPrice();
+    }, 60 * 1000);
+    updateEthPrice();
+
     riot.mixin({user});
     riot.mixin({web3c});
     riot.mixin(firebase);
-    riot.mount('navbar');
+    riot.mount('navbar', { obs });
     riot.mount('toast-box', { obs });
     // riot.mount('app');
 
