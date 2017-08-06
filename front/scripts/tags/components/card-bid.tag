@@ -6,16 +6,12 @@ card-bid
         button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshBidInfo}")
           i.icon.icon-refresh
     .panel-body
-      .empty(if="{opts.numberOfCard === 0}")
-        .empty-icon
-          i.icon.icon-message(style="font-size: 3rem")
-        h4.empty-title カードを所有していません
-      .columns(if="{opts.numberOfCard > 0}")
+      .columns
         .column.col-3.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-4
           .panel
             .panel-header
               .panel-title 売り注文
-            .panel-body
+            .panel-body(if="{opts.numberOfCard > 0}")
               form(autocomplete="off" role="presentation")
                 .form-group
                   label.form-label(for="input-quantity") 枚数
@@ -43,8 +39,14 @@ card-bid
                       value="{wei && wei.toFormat()}"
                     )
                     span.input-group-addon.addon-sm Wei
-            .panel-footer
+            .panel-footer(if="{opts.numberOfCard > 0}")
               button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 売る
+            .panel-body(if="{opts.numberOfCard === 0}")
+              .empty
+                .empty-icon
+                  i.icon.icon-message(style="font-size: 3rem")
+                h4.empty-title カードを所有していません
+            .panel-footer(if="{opts.numberOfCard === 0}")
         .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
           h5.inline-block.text-normal 売り注文一覧
           .empty(if="{opts.bidInfo && opts.bidInfo.length === 0}")
