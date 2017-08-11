@@ -25,7 +25,7 @@ navbar
         a.btn.btn-link(href="#/activity") Activity
     section.navbar-center
       figure.avatar.avatar-l
-        a(href="#/mycards")
+        a(href="{user.link}" target="_blank")
           img(src="{user.photoURL}")
       span.info.hide-xs
         span.text-lowercase {user.etherAccount}

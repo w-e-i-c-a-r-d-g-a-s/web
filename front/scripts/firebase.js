@@ -8,7 +8,21 @@ const storageRef = storage.ref();
 
 firebase.auth().getRedirectResult().then(function(result) {
   const { user } = result;
+
   if(user){
+    const { providerId, profile } = result.additionalUserInfo;
+
+    // ユーザページへのリンクを生成
+    let link = '';
+    if(providerId === 'facebook.com'){
+      link = profile.link;
+    }
+
+    if(providerId === 'twitter.com'){
+      const { username } = result.additionalUserInfo;
+      link = `https://twitter.com/${username}`;
+    }
+
     // ユーザ登録
     // ユーザがすでにいる場合は作成しない
     firebase.database().ref('users/' + user.uid)
@@ -16,6 +30,8 @@ firebase.auth().getRedirectResult().then(function(result) {
       .then((snapshot) => {
         if(!snapshot.exists()){
           firebase.database().ref('users/' + user.uid).set({
+            providerId, // twiiter or facebook
+            link,       // user page link
             displayName: user.displayName,
             email: user.email,
             photoURL: user.photoURL

@@ -30,6 +30,7 @@ import web3c from './modules/web3c'
 firebase.firebase.isLoggedIn().then((_user) => {
   const user = _user;
   firebase.firebase.getUserData(user.uid).then((_user) => {
+    user.link = _user.link;
     user.etherAccount= _user.etherAccount;
     user.wei = web3c.web3.eth.getBalance(_user.etherAccount).toString(10);
     user.eth = web3c.web3.fromWei(user.wei, "ether");
