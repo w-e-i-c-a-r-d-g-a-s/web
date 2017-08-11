@@ -23,7 +23,7 @@ import './tags/containers/toast-box.tag';
 import './tags/components/password-modal.tag';
 
 // modules
-import firebase from './firebase';
+import firebase from './modules/firebase';
 import web3c from './modules/web3c';
 import { EVENT, MENUS } from './constants';
 

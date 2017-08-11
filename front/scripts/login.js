@@ -4,7 +4,7 @@ import '../styles/app.css';
 import './tags/login.tag';
 
 // modules
-import firebase from './firebase'
+import firebase from './modules/firebase'
 import web3c from './modules/web3c'
 
 riot.mixin({web3c});
