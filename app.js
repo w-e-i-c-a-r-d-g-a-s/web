@@ -67,6 +67,10 @@ app.use('/login', login);
 // etherパスワードを登録
 app.use('/newWallet', newWallet);
 
+// 開発用ダミーetherprice
+app.get('/dummyprice', (req, res) => {
+  res.json({JPY: 30000.00})
+});
 
 // ログアウト
 app.get('/logout', function(req, res){

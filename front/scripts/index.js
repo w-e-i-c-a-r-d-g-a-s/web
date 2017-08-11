@@ -38,14 +38,19 @@ firebase.firebase.isLoggedIn().then((_user) => {
     const obs = riot.observable();
 
     // Eth -> JPY 変換API
-    const ethAPI = 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=JPY'
+    let ethAPI = ''
+    if(process.env.NODE_ENV === 'production'){
+      ethAPI = 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=JPY';
+    }else{
+      ethAPI = '/dummyprice';
+    }
     const updateEthPrice = () => {
       request('GET', ethAPI).then((data) => {
         obs.trigger('updateEthPrice', {
           etherJPY: data.body.JPY
         });
       }).catch(() => {
-        console.alert('cant get ethAPI');
+        console.error('cant get etherAPI');
       })
     };
 
