@@ -52,7 +52,6 @@ const CardSIG = require('./sol/dist/Card.signatures');
 const CardContract = web3.eth.contract(CardABI);
 // const BuyOrderContract = web3.eth.contract(BuyOrderABI);
 
-let cardAddresses = CardMasterInstance.getCardAddressList();
 
 // メソッド名を返す
 const getMethod = (input, signatures) => {
@@ -148,7 +147,11 @@ const setTransaction = (tx) => {
     accRef.update(payload);
     // 履歴データに書き込み
     setTransactionRecord(hash, txData);
+    return;
   }
+
+  // TODO ここに書くとちょっと重いかもしれない。。
+  const cardAddresses = CardMasterInstance.getCardAddressList();
 
   if (cardAddresses.indexOf(tx.to) >= 0) {
     console.log('カードに関する');
@@ -184,6 +187,7 @@ const setTransaction = (tx) => {
     caRef.set(txData);
     // 履歴データに書き込み
     setTransactionRecord(hash, txData);
+    return;
   }
 
 };
