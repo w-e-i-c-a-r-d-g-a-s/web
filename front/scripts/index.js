@@ -20,6 +20,7 @@ import './tags/containers/detail.tag';
 import './tags/containers/admin.tag';
 import './tags/containers/setting.tag';
 import './tags/containers/toast-box.tag';
+import './tags/containers/notfound.tag';
 import './tags/components/password-modal.tag';
 
 // modules
@@ -82,10 +83,6 @@ const setEtherPriceAPI = () => {
   riot.mount('navbar', { obs });
   riot.mount('toast-box', { obs });
 
-  route((collection, id, action) => {
-    console.log(collection, id, action);
-  });
-
   route('/', (collection, id, action) => {
     console.log('route is home');
     obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.HOME });
@@ -120,6 +117,11 @@ const setEtherPriceAPI = () => {
   route('setting', () => {
     obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.SETTING });
     riot.mount('app', 'setting', {obs});
+  });
+
+  route((collection, id, action) => {
+    console.log('not found', collection, id, action);
+    riot.mount('app', 'notfound');
   });
 
   route.start(true);
