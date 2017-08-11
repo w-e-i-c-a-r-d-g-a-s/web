@@ -55,6 +55,7 @@ res.once('value', (ss) => {
 
 export default {
   firebase: {
+    _firebase: firebase,
     addressToPhotoUrl,
     // ログインしているかどうか
     isLoggedIn(){
@@ -137,6 +138,48 @@ export default {
      */
     createCard(id, card){
       firebase.database().ref('cards/' + id ).set(card);
+      this.setTags(card.tags, id);
+    },
+
+
+    /**
+     * タグの一覧を取得
+     * TODO 全件取得するのでそのうち遅くなるのでは？
+     * @returns {Promise}
+     */
+    getTags(){
+      const ref = firebase.database().ref('tags').orderByValue();
+      return new Promise((resolve, reject) => {
+        ref.once('value', (data) => {
+          const tags = [];
+          data.forEach((ss) => {
+            tags.push(ss.key);
+          });
+          resolve(tags);
+        });
+      });
+    },
+
+    /**
+     * タグをセット
+     * @param {array} tagList タグデータの配列
+     * @param {string} cardId カードID
+     */
+    setTags(tagList, cardId){
+      tagList.forEach((tag) => {
+        const ref = firebase.database().ref(`tags/${tag}`);
+        ref.once('value').then((snapshot) => {
+          if(snapshot.exists()){
+            // カードを追加
+            const v = snapshot.val();
+            v.push(cardId);
+            ref.set(v);
+          } else {
+            // 新規
+            ref.set([cardId]);
+          }
+        });
+      });
     },
 
     getCard(id){

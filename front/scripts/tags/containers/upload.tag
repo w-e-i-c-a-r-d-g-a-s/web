@@ -34,6 +34,24 @@ upload
               oninput="{changeTs}"
             )
           .form-group
+            label.form-label タグ エンターキーまたは,で追加する
+            .form-autocomplete
+              .form-autocomplete-input.form-input.is-focused
+                label.chip(each="{tag in tagSet.toJSON()}")
+                  | {tag}
+                  button.btn.btn-clear(onclick="{removeTag}")
+                input.form-input(type='text' ref="tag" onkeyup="{tagKeyup}" onkeydown="{tagKeypress}")
+              ul.menu(if="{_suggestList.length > 0}")
+                li.menu-item(each="{v in _suggestList}")
+                  a(href='#' onclick="{selectTag}")
+                    .tile.tile-centered
+                      .tile-content
+                        | {v}
+                        // mark S
+                        // | teve Roger
+                        // mark s
+
+          .form-group
             button.btn.btn-primary(
               onclick="{addCard}"
               disabled="{!enableForm}"
@@ -54,25 +72,86 @@ upload
 
     const PH_NAME = 'New Card Name';
     const PH_TS = 10;
-    const PH_IMAGE_URL = 'https://www.ethereum.org/images/logos/ETHEREUM-LOGO_PORTRAIT_Black_small.png';
+    const PH_IMAGE_URL = '/images/ETHEREUM-LOGO_PORTRAIT_Black_small.png'
+
+    this.tagSet = new Set();
 
     this.showPasswordModal = false;
     this.loading = false;
     this.enableForm = false;
     this.file = null;
     this.fileHash = '';
+    this.suggestList = [];
+    this._suggestList = [];
     this.card = {
       name: PH_NAME,
       address: '0x999999999999999999999999999999999',
-      imageUrl: 'https://www.ethereum.org/images/logos/ETHEREUM-LOGO_PORTRAIT_Black_small.png',
+      imageUrl: PH_IMAGE_URL,
       issued: PH_TS
     };
 
-    this.on('mount', () => {
+    this.on('mount', async () => {
       this.card.author = this.user.etherAccount;
+      // タグデータを取得
+      this.suggestList = await this.firebase.getTags();
       this.update();
     });
 
+    /**
+     * タグを追加
+     * @param {event} e イベント
+     */
+    tagKeypress(e){
+      const tagValue = e.target.value;
+      if(e.keyCode === 8){
+        if(tagValue.length === 0){
+          e.preventDefault();
+          const tags = this.tagSet.toJSON();
+          this.tagSet.delete(tags[tags.length - 1]);
+          e.target.value = tags[tags.length - 1] || '';
+        }
+      }
+      // Enter or ,
+      if(e.keyCode === 188 || e.keyCode === 13){
+        e.preventDefault();
+        if(tagValue.length > 0){
+          this.tagSet.add(tagValue);
+          e.target.value = '';
+        }
+      }
+    }
+
+    tagKeyup(e){
+      const tagValue = e.target.value;
+      if(tagValue.length > 0){
+        this._suggestList = this.suggestList.filter((s) => s.indexOf(tagValue) >= 0);
+      } else {
+        this._suggestList = [];
+      };
+    }
+
+    /**
+     * サジェストされたタグを選択
+     */
+    selectTag(e){
+      e.preventDefault();
+      this.tagSet.add(e.item.v);
+      this.refs.tag.value = '';
+      this._suggestList = [];
+    }
+
+    /**
+     * タグを削除
+     * @param {event} e イベント
+     */
+    removeTag(e){
+      this.tagSet.delete(e.item.tag);
+    }
+
+    /**
+     * カードを登録
+     * @param {event} e イベント
+     */
     async addCard(e){
       e.preventDefault();
       const { cardName, totalSupply } = this.refs;
@@ -92,11 +171,17 @@ upload
         const url = await this.firebase.uploadImage(this.file, this.fileHash);
         // console.log(url, this.card);
         // FBにカードデータを作成
-        this.firebase.createCard(this.fileHash, {
-          name: cardName.value,
-          issued: +totalSupply.value,
-          url
-        });
+        try {
+          this.firebase.createCard(this.fileHash, {
+            name: cardName.value,
+            issued: +totalSupply.value,
+            url,
+            tags: this.tagSet.toJSON()
+          });
+        } catch (e) {
+          console.log(e.message);
+          return;
+        }
         await this._addCard(cardName.value, totalSupply.value, this.fileHash);
         this.loading = false;
         this.resetForm();
@@ -136,6 +221,7 @@ upload
       cardName.value = '';
       totalSupply.value = '';
       file.value = '';
+      this.tagSet.clear();
       this.card.name = PH_NAME;
       this.card.issued = PH_TS;
       this.card.imageUrl = PH_IMAGE_URL;
@@ -153,7 +239,7 @@ upload
     changeTs(e){
       this.card.issued = e.target.value;
       if(e.target.value.length === 0){
-        this.card.name = TS_PH;
+        this.card.name = PH_TS;
       }
       this.checkForm();
     }
