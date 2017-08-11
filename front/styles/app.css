@@ -13,6 +13,16 @@
     font-size: 11px;
     margin: 0 10px;
   }
+
+  & .btn {
+    &:focus {
+      box-shadow: none;
+    }
+    &.active {
+      color: #777;
+      cursor: default;
+    }
+  }
 }
 
 .page {

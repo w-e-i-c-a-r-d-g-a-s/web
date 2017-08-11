@@ -20,9 +20,9 @@ navbar
           li.menu-item
             a(href="#" onclick="{logout}") Logout
       .hide-md
-        a.btn.btn-link(href="#/") Home
-        a.btn.btn-link(href="#/mycards") My Cards
-        a.btn.btn-link(href="#/activity") Activity
+        a.btn.btn-link(href="#/" class="{'active': menu === MENUS.HOME}") Home
+        a.btn.btn-link(href="#/mycards" class="{'active': menu === MENUS.MYCARDS}") My Cards
+        a.btn.btn-link(href="#/activity" class="{'active': menu === MENUS.ACTIVITY}") Activity
     section.navbar-center
       figure.avatar.avatar-l
         a(href="{user.link}" target="_blank")
@@ -34,17 +34,25 @@ navbar
     section.navbar-section
       .hide-md
         span 1ETH = &yen;{etherJPY}
-        a.btn.btn-link(href="#/upload") Upload
-        a.btn.btn-link(href="#/admin") Admin
-        a.btn.btn-link(href="#/setting") Setting
+        a.btn.btn-link(href="#/upload" class="{'active': menu === MENUS.UPLOAD}") Upload
+        a.btn.btn-link(href="#/admin" class="{'active': menu === MENUS.ADMIN}") Admin
+        a.btn.btn-link(href="#/setting" class="{'active': menu === MENUS.SETTING}") Setting
         button.btn.btn-link(onclick="{logout}") Logout
   script.
+    import { EVENT, MENUS } from '../../constants'
+    this.MENUS = MENUS;
     this.etherJPY = null;
 
     opts.obs.on('updateEthPrice', (({ etherJPY }) => {
       this.etherJPY = etherJPY;
       this.update();
     }));
+
+    opts.obs.on(EVENT.UPDATE_MENU, (({ selectedMenu }) => {
+      this.menu = selectedMenu;
+      this.update();
+    }));
+
 
     /**
      * ログアウト処理

@@ -23,100 +23,105 @@ import './tags/containers/toast-box.tag';
 import './tags/components/password-modal.tag';
 
 // modules
-import firebase from './firebase'
-import web3c from './modules/web3c'
+import firebase from './firebase';
+import web3c from './modules/web3c';
+import { EVENT, MENUS } from './constants';
 
+// オブザーバーオブジェクト
+const obs = riot.observable();
 
-firebase.firebase.isLoggedIn().then((_user) => {
-  const user = _user;
-  firebase.firebase.getUserData(user.uid).then((_user) => {
-    user.link = _user.link;
-    user.etherAccount= _user.etherAccount;
-    user.wei = web3c.web3.eth.getBalance(_user.etherAccount).toString(10);
-    user.eth = web3c.web3.fromWei(user.wei, "ether");
-    // オブザーバーオブジェクト
-    const obs = riot.observable();
+const setEtherPriceAPI = () => {
+  // Eth -> JPY 変換API
+  let ethAPI = ''
+  if(process.env.NODE_ENV === 'production'){
+    ethAPI = 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=JPY';
+  }else{
+    ethAPI = '/dummyprice';
+  }
 
-    // Eth -> JPY 変換API
-    let ethAPI = ''
-    if(process.env.NODE_ENV === 'production'){
-      ethAPI = 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=JPY';
-    }else{
-      ethAPI = '/dummyprice';
-    }
-    const updateEthPrice = () => {
-      request('GET', ethAPI).then((data) => {
-        obs.trigger('updateEthPrice', {
-          etherJPY: data.body.JPY
-        });
-      }).catch(() => {
-        console.error('cant get etherAPI');
-      })
-    };
-
-    // 1分に1回くらいリクエストする
-    setInterval(() => {
-      updateEthPrice();
-    }, 60 * 1000);
-    updateEthPrice();
-
-    riot.mixin({user});
-    riot.mixin({web3c});
-    riot.mixin(firebase);
-    riot.mount('navbar', { obs });
-    riot.mount('toast-box', { obs });
-    // riot.mount('app');
-
-    route(function(collection, id, action) {
-      console.log(collection, id, action);
-    });
-
-    route('/', function(collection, id, action) {
-      console.log('route is home');
-      riot.mount('app', 'home');
-    });
-
-    route('/cards/*', function(cardAddress) {
-      console.log('route is card detail', cardAddress);
-      riot.mount('app', 'detail', {
-        cardAddress,
-        obs
+  const updateEthPrice = () => {
+    request('GET', ethAPI).then((data) => {
+      obs.trigger('updateEthPrice', {
+        etherJPY: data.body.JPY
       });
-    });
+    }).catch(() => {
+      console.error('cant get etherAPI');
+    })
+  };
 
-    route('mycards', () => {
-      console.log('route is mycards');
-      riot.mount('app', 'mycards');
-    });
+  // 1分に1回くらいリクエストする
+  setInterval(() => {
+    updateEthPrice();
+  }, 60 * 1000);
+  updateEthPrice();
+};
 
-    route('upload', () => {
-      console.log('route is upload');
-      riot.mount('app', 'upload', {obs});
-    });
+(async () => {
+  let _authUser = null;
+  try {
+    _authUser = await firebase.firebase.isLoggedIn();
+  } catch (e) {
+    // not login
+    location.href = '/login';
+    return;
+  }
 
-    route('activity', () => {
-      console.log('route is activity');
-      riot.mount('app', 'activity', {obs});
-    });
+  // Create user data
+  const _user = await firebase.firebase.getUserData(_authUser.uid);
+  const user = _authUser;
+  user.link = _user.link;
+  user.etherAccount= _user.etherAccount;
+  user.wei = web3c.web3.eth.getBalance(_user.etherAccount).toString(10);
+  user.eth = web3c.web3.fromWei(user.wei, "ether");
 
-    route('admin', () => {
-      console.log('route is admin');
-      riot.mount('app', 'admin', {obs});
-    });
+  setEtherPriceAPI();
 
-    route('setting', () => {
-      console.log('route is setting');
-      riot.mount('app', 'setting', {obs});
-    });
+  riot.mixin({user});
+  riot.mixin({web3c});
+  riot.mixin(firebase);
+  riot.mount('navbar', { obs });
+  riot.mount('toast-box', { obs });
 
-    route.start(true);
+  route((collection, id, action) => {
+    console.log(collection, id, action);
   });
-  // this.isLoggedIn = true;
-  // this.update();
-}).catch((e) => {
-  // not login
-  location.href = '/login';
-});
 
+  route('/', (collection, id, action) => {
+    console.log('route is home');
+    obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.HOME });
+    riot.mount('app', 'home');
+  });
 
+  route('/cards/*', (cardAddress) => {
+    obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.CARDS });
+    riot.mount('app', 'detail', { cardAddress, obs });
+  });
+
+  route('mycards', () => {
+    obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.MYCARDS });
+    riot.mount('app', 'mycards');
+  });
+
+  route('upload', () => {
+    obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.UPLOAD });
+    riot.mount('app', 'upload', {obs});
+  });
+
+  route('activity', () => {
+    obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.ACTIVITY });
+    riot.mount('app', 'activity', {obs});
+  });
+
+  route('admin', () => {
+    obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.ADMIN });
+    riot.mount('app', 'admin', {obs});
+  });
+
+  route('setting', () => {
+    obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.SETTING });
+    riot.mount('app', 'setting', {obs});
+  });
+
+  route.start(true);
+})();
 
