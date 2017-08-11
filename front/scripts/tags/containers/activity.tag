@@ -4,7 +4,9 @@ activity
       .column.col-3
       .column.col-6
         h5 Activity
-        .timeline
+        .div(if="{dispActivities.length === 0}")
+          p Activityはありません
+        .timeline(if="{dispActivities.length > 0}")
           .timeline-item(each="{act in dispActivities}")
             .timeline-left
               .timeline-icon(if="{act.activities[0].receipt.from !== user.etherAccount}")
@@ -23,7 +25,7 @@ activity
       .column.col-3
   script.
     import _ from 'lodash';
-    this.isShowNext = true;
+    this.isShowNext = false;
     this.activities = [];
     this.dispActivities = [];
     this.latestSK = null;
@@ -37,6 +39,14 @@ activity
     this.on('mount', () => {
       // this.firebase.updateUserTransactionsRef(this.user.etherAccount);
       const utRef = this.firebase.getUserTransactionsRef(this.user.etherAccount);
+      utRef.once('value', (snapshots) => {
+        // データが最後の場合ボタンを非表示
+        if(snapshots.numChildren() === 5){
+          this.isShowNext = true
+          this.update();
+        }
+      });
+
       utRef.on('child_added', (ss, prevChildKey) => {
         const v = ss.val();
         v.key = ss.key;
