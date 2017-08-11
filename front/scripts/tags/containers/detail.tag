@@ -6,6 +6,8 @@ detail
           .column.col-12.col-xs-12.col-sm-6.col-md-5.col-lg-12.col-xl-12
             card(card="{card}" single="{true}")
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
+            a.chip(href="#/tags/{tag}" each="{tag in card.tags}") {tag}
+          .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
             card-owners(card="{card}")
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
@@ -54,7 +56,9 @@ detail
     this.on('mount', async () => {
       this.card = this.web3c.getCard(this.opts.cardAddress);
       const cardData = await this.firebase.getCard(this.card.imageHash);
+      console.log(cardData);
       this.card.imageUrl = cardData.url;
+      this.card.tags = cardData.tags;
 
       // 自身の保有枚数導出
       const owned = this.card.owners.find((own) => {
