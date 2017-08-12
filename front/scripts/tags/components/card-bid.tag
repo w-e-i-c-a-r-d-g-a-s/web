@@ -72,8 +72,6 @@ card-bid
                 )
               td
                 .tile.tile-centered
-                  .tile-icon
-                    img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[o.from] }")
                   .tile-content.inline-block.text-ellipsis.addr {o.from}
               td {o.quantity}
               td.tooltip(data-tooltip="{o.price} Wei") {o.priceEth} Ether
