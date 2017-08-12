@@ -4,27 +4,31 @@ activity
       .column.col-3
       .column.col-6
         h5 Activity
-        .div(if="{dispActivities.length === 0}")
-          p Activityはありません
-        .timeline(if="{dispActivities.length > 0}")
-          .timeline-item(each="{act in dispActivities}")
-            .timeline-left
-              .timeline-icon(if="{act.activities[0].receipt.from !== user.etherAccount}")
-              .timeline-icon.icon-lg(if="{act.activities[0].receipt.from === user.etherAccount}")
-                i.icon.icon-time
-            .timeline-content
-              .tile
-                .tile-content
-                  p.tile-subtitle {(new Date(+act.timestamp * 1000)).toLocaleString("ja")}
-                  p.tile-title(each="{ acts in act.activities }")
-                    span.label.label-primary.mr-10(if="{acts.inputMethod === 'addCard'}") カード発行
-                    span.label.label-success.mr-10(if="{acts.inputMethod !== 'addCard'}") カード売買
-                    a(href="#/cards/{acts.card.address}") {acts.card.name}
-                    span : {getActivityText(acts)}
-        .btn.mt-10(if="{isShowNext}" onclick="{getNext}") next
+        .loading(if="{isLoading}")
+        div(if="{!isLoading}")
+          div(if="{dispActivities.length === 0}")
+            p Activityはありません
+          .timeline(if="{dispActivities.length > 0}")
+            .timeline-item(each="{act in dispActivities}")
+              .timeline-left
+                .timeline-icon(if="{act.activities[0].receipt.from !== user.etherAccount}")
+                .timeline-icon.icon-lg(if="{act.activities[0].receipt.from === user.etherAccount}")
+                  i.icon.icon-time
+              .timeline-content
+                .tile
+                  .tile-content
+                    p.tile-subtitle {(new Date(+act.timestamp * 1000)).toLocaleString("ja")}
+                    p.tile-title(each="{ acts in act.activities }")
+                      span.label.label-primary.mr-10(if="{acts.inputMethod === 'addCard'}") カード発行
+                      span.label.label-success.mr-10(if="{acts.inputMethod !== 'addCard'}") カード売買
+                      a(href="#/cards/{acts.card.address}") {acts.card.name}
+                      span : {getActivityText(acts)}
+          .btn.mt-10(if="{isShowNext}" onclick="{getNext}" class="{loading: isNextLoading}") next
       .column.col-3
   script.
     import _ from 'lodash';
+    this.isLoading = true;
+    this.isNextLoading = false;
     this.isShowNext = false;
     this.activities = [];
     this.dispActivities = [];
@@ -43,8 +47,9 @@ activity
         // データが最後の場合ボタンを非表示
         if(snapshots.numChildren() === 5){
           this.isShowNext = true
-          this.update();
         }
+        this.isLoading = false;
+        this.update();
       });
 
       utRef.on('child_added', (ss, prevChildKey) => {
@@ -65,6 +70,7 @@ activity
           this.activities.unshift(v);
         }
         this.updateDispActivities();
+        this.update();
         this.latestSK = _.last(this.activities).sortKey;
       });
     });
@@ -82,11 +88,12 @@ activity
         this.dispActivities.push({timestamp: ts, activities: v});
       }
       this.dispActivities = _.orderBy(this.dispActivities, ['timestamp'], ['desc']);
-      this.update();
     }
 
     getNext(){
       const utRef = this.firebase.getUserTransactionsRef(this.user.etherAccount, this.latestSK);
+      this.isNextLoading = true;
+      this.update();
       utRef.once('value', (snapshots) => {
         snapshots.forEach((ss) => {
           const v = ss.val();
@@ -108,6 +115,8 @@ activity
         }
 
         this.updateDispActivities();
+        this.isNextLoading = false;
+        this.update();
         this.latestSK = _.last(this.activities).sortKey;
       });
     }

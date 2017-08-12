@@ -15,14 +15,9 @@ card-activity
             tr(each="{act in activities}")
               td {(new Date(+act.timestamp * 1000)).toLocaleString("ja")}
               td
-                span.label.label-primary.mr-10(if="{act.isDeal}") 売買
+                span.label.label-success.mr-10(if="{act.isDeal}") 売買
                 span.label.mr-10(if="{!act.isDeal}") 発行
                 | {act.text}
-              // td {act.inputArgs}
-              // td {act.receipt.from}
-                  // span.label.label-primary.mr-10(if="{acts.inputMethod === 'addCard'}") カード発行
-                  // span.label.label-success.mr-10(if="{acts.inputMethod !== 'addCard'}") カード売買
-                  // span : {getActivityText(acts)}
       .panel-footer
 
   script.
@@ -32,7 +27,6 @@ card-activity
     this.dispActivities = [];
     this.latestSK = null;
     this.on('mount', () => {
-    console.log(this.opts.cardAddress);
       // 履歴
       const utRef = this.firebase.getCardTransactions(this.opts.cardAddress);
       // 5件以上あるかどうか
@@ -65,6 +59,10 @@ card-activity
         this.update();
         this.latestSK = _.last(this.activities).sortKey;
       });
+    });
+
+    this.on('unmount', () => {
+      this.firebase.getCardTransactions(this.opts.cardAddress).off('child_added');
     });
 
     /**
