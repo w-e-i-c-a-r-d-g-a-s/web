@@ -19,6 +19,7 @@ import './tags/containers/upload.tag';
 import './tags/containers/detail.tag';
 import './tags/containers/admin.tag';
 import './tags/containers/setting.tag';
+import './tags/containers/tagpage.tag';
 import './tags/containers/toast-box.tag';
 import './tags/containers/notfound.tag';
 import './tags/components/password-modal.tag';
@@ -90,8 +91,11 @@ const setEtherPriceAPI = () => {
   });
 
   route('/cards/*', (cardAddress) => {
-    obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.CARDS });
     riot.mount('app', 'detail', { cardAddress, obs });
+  });
+
+  route('/tags/*', (tag) => {
+    riot.mount('app', 'tagpage', { tag });
   });
 
   route('mycards', () => {

@@ -52,7 +52,6 @@ activity
         v.key = ss.key;
         v.receipt = this.web3c.web3.eth.getTransactionReceipt(v.key);
         if(v.inputMethod === 'addCard'){
-          console.log(this.web3c.getCardByImageHash(v.inputArgs[2]));
           v.card = this.web3c.getCard(this.web3c.getCardByImageHash(v.inputArgs[2]).address);
         } else {
           v.card = this.web3c.getCard(v.receipt.to);

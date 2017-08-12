@@ -15,7 +15,9 @@ home
       this.update();
       this.cards.forEach(async (c) => {
         const cardData = await this.firebase.getCard(c.imageHash);
-        c.imageUrl = cardData.url;
-        this.update();
+        if(cardData){
+          c.imageUrl = cardData.url;
+          this.update();
+        }
       });
     });

@@ -107,7 +107,15 @@ const web3c = {
       const card = CardContract.at(address);
       return imageHash === web3.toAscii(card.imageHash());
     });
-    return CardContract.at(hitAddress);
+    const card = CardContract.at(hitAddress);
+    return {
+      card,
+      address: card.address,
+      name: web3.toAscii(card.name()),
+      imageHash: web3.toAscii(card.imageHash()),
+      author: card.author(),
+      issued: card.issued().toString(10)
+    };
   },
 
   // カード情報を取得
