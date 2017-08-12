@@ -3,6 +3,7 @@ admin
     h4 Admin
     p CardMaster Address: {web3c.cardMasterAddress}
     button.btn(onclick="{deployCardMaster}") Deploy Cardmaster
+    button.btn(onclick="{deleteFirebaseData}") Delete Data
     hr
     h5 送金
     .columns
@@ -35,6 +36,17 @@ admin
 
     deployCardMaster(){
       this.web3c.deployCardMaster();
+    }
+
+    deleteFirebaseData(){
+      if(window.confirm('delete all data?')){
+        const db = this.firebase._firebase.database()
+        db.ref('accounts').remove();
+        db.ref('cardAccounts').remove();
+        db.ref('cards').remove();
+        db.ref('tags').remove();
+        db.ref('transactions').remove();
+      }
     }
 
     updateAccounts(){
