@@ -11,6 +11,7 @@ detail
             card-owners(card="{card}")
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
+        card-activity(card-address="{opts.cardAddress}")
         card-ask(
           ask="{ask}"
           refresh-ask-info="{refreshAskInfo}"
@@ -56,7 +57,6 @@ detail
     this.on('mount', async () => {
       this.card = this.web3c.getCard(this.opts.cardAddress);
       const cardData = await this.firebase.getCard(this.card.imageHash);
-      console.log(cardData);
       this.card.imageUrl = cardData.url;
       this.card.tags = cardData.tags;
 

@@ -241,14 +241,16 @@ export default {
      * @param {string} cardAddress 履歴を取得したいカードアドレス
      * @returns {object} ref
      */
-    getCardTransactions(cardAddress){
-      const accRef = firebase.database().ref(`cardAccounts/${cardAddress}/txs`);
-      accRef.orderByChild("timestamp").limitToLast(5).once('value')
-        .then((snapshots) => {
-          snapshots.forEach((ss) =>{
-            console.log(ss.key,ss.val());
-          });
-        });
+    getCardTransactions(cardAddress, latestSortKey){
+      let ref = firebase.database()
+        .ref(`cardAccounts/${cardAddress}/txs`)
+        .orderByChild("sortKey")
+        .limitToFirst(5);
+      // 次のデータを所得する場合
+      if(latestSortKey){
+        ref = ref.startAt(latestSortKey + 1)
+      }
+      return ref;
     }
   }
 };

@@ -282,6 +282,15 @@ const web3c = {
     web3.eth.defaultAccount = account;
     const card = CardContract.at(cardAddress);
     return card.send(receiver, quantity, { gas });
+  },
+
+  /**
+   * weiをEthに変換
+   * @param {number} wei weiの金額
+   * @returns {number} Ethの額
+   */
+  weiToEth(wei){
+    return web3.fromWei(wei, 'ether');
   }
 
 };
