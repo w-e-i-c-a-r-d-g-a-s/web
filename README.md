@@ -1,9 +1,18 @@
+## Requirements
 
-## install
+* Node.js v8+
 
-### Ethereum RPCの起動
+#### パッケージをインストール
 
-#### a. RPCをgethで実行する場合
+`truffle`, `yarn`,`nodemon`が入ってない場合はインストール
+
+```
+npm install -g nodemon yarn truffle
+```
+
+## Ethereum RPCの起動
+
+#### RPCをgethで実行する場合
 
 ```
 $ geth --port 30001 --networkid "3981" \
@@ -13,59 +22,22 @@ $ geth --port 30001 --networkid "3981" \
 
 のようなコマンドで、gethを起動する
 
-#### b. RPCをtestrpcで実行する場合
+## Installation
 
-<!--
-[eth-testrpc](https://github.com/pipermerriam/eth-testrpc) をpipでインストール
-(pythonは2, 3どっちでも良さそう)
-
-```sh
-$ pip install eth-testrpc
-```
-
-うまくいかない場合はこっちを試す
-
-```sh
-sudo -H pip install eth-testrpc
-```
-
-
-
-`command not found: testrpc`といわれる場合は
--->
-
-[ethereumjs-testrpc](https://github.com/ethereumjs/testrpc)をインストールします。
+submoduleを追加・更新
 
 ```
-$ npm uninstall -g ethereumjs-testrpc
-$ npm install -g ethereumjs-testrpc
+$ git submodule update -i
 ```
 
-インストールができたら`testrpc`で起動する。
-
-```sh
-$ testrpc
-```
-
-（一度接続した後の止め方が分からない・・・）
-
----
 
 ### パッケージをインストール
-
-`yarn`,`nodemon`が入ってない場合はインストール
-
-```
-npm install -g nodemon yarn
-```
-
-インストールを実行
 
 ```
 $ yarn install
 ```
 
-## 設定ファイルを配置
+### 設定ファイルを配置
 
 必要なファイルを
 https://drive.google.com/drive/folders/0B-k36n5IvAUKNTlLb3RQZ09XNVk
@@ -77,10 +49,14 @@ https://drive.google.com/drive/folders/0B-k36n5IvAUKNTlLb3RQZ09XNVk
 
 etherSetteingの中身はgethの設定により適宜書き換えるようにしてください。
 
-## solc実行
+### solidityのコンパイル実行
+
 ```
-$ npm run solc
+$ cd contracts
+$ truffle compile
 ```
+
+`./contracts/build/contracts`にコンパイルされたsolidityファイルが生成される
 
 ## Development
 
