@@ -38,7 +38,6 @@ if (typeof web3 !== 'undefined') {
 }
 
 const CardMasterABI = JSON.parse(require('./sol/dist/CardMaster.abi'));
-const CardMasterBIN = `0x${require('./sol/dist/CardMaster.bin')}`;
 const CardMasterSIG = require('./sol/dist/CardMaster.signatures');
 
 const CardMasterAddress = cardMasterAddress;
@@ -46,7 +45,6 @@ const CardMasterContract = web3.eth.contract(CardMasterABI);
 const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
 
 const CardABI = JSON.parse(require('./sol/dist/Card.abi'));
-const CardBIN = `0x${require('./sol/dist/Card.bin')}`;
 const CardSIG = require('./sol/dist/Card.signatures');
 
 const CardContract = web3.eth.contract(CardABI);
