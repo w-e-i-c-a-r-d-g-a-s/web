@@ -84,7 +84,7 @@ const getArguments = (input, signatures) => {
 
     // 文字列の場合
     if(argsDefs[i].indexOf('bytes32') === 0){
-      return web3.toAscii('0x'+a).replace(/\u0000/g, '') ;;
+      return web3.toAscii('0x'+a).replace(/\u0000/g, '');
     }
   });
   console.log(argsData);
