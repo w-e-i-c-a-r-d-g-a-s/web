@@ -58,6 +58,17 @@ $ truffle compile
 
 `./contracts/build/contracts`にコンパイルされたsolidityファイルが生成される
 
+### solidityのsignatureを作成
+
+プロジェクトのルートで`npm run solc`を実行
+
+```
+$ cd ..
+$ npm run solc
+```
+
+`./contracts/build/signatures`にsolidityのsignatureファイルができる
+
 ## Development
 
 フロント側のビルドシステムを起動
