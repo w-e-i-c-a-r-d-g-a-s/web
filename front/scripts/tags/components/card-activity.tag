@@ -8,7 +8,7 @@ card-activity
           thead
             tr
               th 時刻
-              th genre
+              th イベント
               // th release date
               // th from
           tbody
@@ -75,32 +75,32 @@ card-activity
 
       // カード発行
       if(inputMethod === 'addCard'){
-        return `カードが ${inputArgs[1]}枚 発行しました`
+        return `カードが ${inputArgs[1]}枚 発行されました`
       }
       // 売り注文を発行
-      if(inputMethod === 'sellOrder'){
+      if(inputMethod === 'ask'){
         const eth = this.web3c.weiToEth(inputArgs[1]);
         return `${eth}ETH で ${inputArgs[0]}枚 の売り注文を作成されました`
       }
       // 売り注文から買う
-      if(inputMethod === 'buy'){
-        const bid = this.web3c.getBid(card.address, inputArgs[0]);
+      if(inputMethod === 'acceptAsk'){
+        const bid = this.web3c.getAsk(card.address, inputArgs[0]);
         const _price = this.web3c.weiToEth(bid[2].toNumber());
         return `${_price}ETHで${bid[1].toNumber()}枚 販売されました`
       }
       // 買い注文から買う
-      if(inputMethod === 'createBuyOrder'){
+      if(inputMethod === 'bid'){
         return `${inputArgs[1]}ETH で ${inputArgs[0]}枚 の買い注文が作成されました`
       }
       // 買い注文から売る
-      if(inputMethod === 'sell'){
+      if(inputMethod === 'acceptBid'){
         const index = inputArgs[0];
-        const buyOrder = this.web3c.getAsk(card.address, index);
+        const buyOrder = this.web3c.getBid(card.address, index);
         const price = this.web3c.weiToEth(buyOrder.price().toNumber());
         return `${price}ETH で ${inputArgs[1]}枚 売却しました`
       }
       // 送付
-      if(inputMethod === 'send'){
+      if(inputMethod === 'deal'){
         return `${inputArgs[1]}枚 配布しました`
       }
 
@@ -113,6 +113,6 @@ card-activity
      * @returns {boolean} 取引の場合true
      */
     isDeal(inputMethod){
-      return /^(buy|sell|send)$/.test(inputMethod);
+      return /^(acceptBid|acceptAsk|deal)$/.test(inputMethod);
     }
 

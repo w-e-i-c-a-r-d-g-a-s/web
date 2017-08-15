@@ -133,28 +133,28 @@ activity
       const _from = isMine ? '' : `${from.slice(0,8)}... が`;
       const isMine = from === this.user.etherAccount;
       switch (inputMethod) {
-        case 'sellOrder':
+        case 'ask':
           res = `${_from}${this.web3c.web3.fromWei(inputArgs[1], 'ether')}ETH で ${inputArgs[0]}枚 の売り注文を作成しました`
           break;
-        case 'createBuyOrder':
+        case 'bid':
           res = `${_from}${inputArgs[1]}ETH で ${inputArgs[0]}枚 の買い注文を作成しました`
           break;
-        case 'sell':
+        case 'acceptBid':
           const index = inputArgs[0];
-          const buyOrder = this.web3c.getAsk(activity.card.address, index);
+          const buyOrder = this.web3c.getBid(activity.card.address, index);
           const price = this.web3c.web3.fromWei(buyOrder.price().toNumber(), 'ether');
           res = `${_from}${buyOrder.buyer().slice(0,8)}... へ ${price}ETH で ${inputArgs[1]}枚 売却しました`
           break;
-        case 'send':
+        case 'deal':
           res = `${_from}${inputArgs[0].slice(0,8)}... へ ${inputArgs[1]}枚 配布しました`
           break;
-        case 'buy':
-          const bid = this.web3c.getBid(activity.card.address, inputArgs[0]);
+        case 'acceptAsk':
+          const bid = this.web3c.getAsk(activity.card.address, inputArgs[0]);
           const _price = this.web3c.web3.fromWei(bid[2].toNumber(), 'ether');
           res = `${_from}${bid[0].slice(0, 8)}...から${_price}ETHで${bid[1].toNumber()}枚 購入しました`
           break;
         case 'addCard':
-          res = `${inputArgs[0]} を ${inputArgs[1]}枚 発行しました`
+          res = `${inputArgs[1]}枚 発行しました`
           break;
         default:
           res = `${inputMethod} しました`

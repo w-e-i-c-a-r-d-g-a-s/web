@@ -12,10 +12,9 @@ admin.initializeApp({
 });
 const database = admin.database();
 
-// abi,binファイルをテキストとしてrequire
-require.extensions['.abi'] = require.extensions['.bin'] = (module, filename) => {
-  module.exports = fs.readFileSync(filename, 'utf8');
-};
+const cardMasterSol = require('./contracts/build/contracts/CardMaster.json');
+const cardSol = require('./contracts/build/contracts/Card.json');
+const bidInfoSol = require('./contracts/build/contracts/BidInfo.json');
 
 // signatureはkey-valueの形式にする
 require.extensions['.signatures'] = (module, filename) => {
@@ -37,19 +36,14 @@ if (typeof web3 !== 'undefined') {
   web3 = new Web3(new Web3.providers.HttpProvider(rpcEndpointLocal));
 }
 
-const CardMasterABI = JSON.parse(require('./sol/dist/CardMaster.abi'));
-const CardMasterSIG = require('./sol/dist/CardMaster.signatures');
+const cardMasterContract = web3.eth.contract(cardMasterSol.abi);
+const cardContract = web3.eth.contract(cardSol.abi);
+const bidInfoContract = web3.eth.contract(bidInfoSol.abi);
 
-const CardMasterAddress = cardMasterAddress;
-const CardMasterContract = web3.eth.contract(CardMasterABI);
-const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
+const cardMasterSIG = require('./contracts/build/signatures/CardMaster.signatures');
+const cardSIG = require('./contracts/build/signatures/Card.signatures');
 
-const CardABI = JSON.parse(require('./sol/dist/Card.abi'));
-const CardSIG = require('./sol/dist/Card.signatures');
-
-const CardContract = web3.eth.contract(CardABI);
-// const BuyOrderContract = web3.eth.contract(BuyOrderABI);
-
+const cardMasterInstance = cardMasterContract.at(cardMasterAddress);
 
 // メソッド名を返す
 const getMethod = (input, signatures) => {
@@ -116,8 +110,8 @@ const setTransaction = (tx) => {
       gasUsed,
       value: value.toNumber(),
       inputRaw: tx.input,
-      inputMethod: getMethod(tx.input, CardMasterSIG),
-      inputArgs: getArguments(tx.input, CardMasterSIG),
+      inputMethod: getMethod(tx.input, cardMasterSIG),
+      inputArgs: getArguments(tx.input, cardMasterSIG),
       timestamp,
       // データを時系列昇順で並べられるようにする
       sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex)
@@ -129,15 +123,15 @@ const setTransaction = (tx) => {
     const logData = receipt.logs[0].data;
     const cardAddress = `0x${logData.slice(26)}`;
     // カードにtxを追加
-    const caRef = database.ref(`cardAccounts/${cardAddress}/txs/${hash}`)
+    const caRef = database.ref(`cardActivities/${cardAddress}/txs/${hash}`)
     caRef.set(txData);
     // ユーザに登録
-    const card = CardContract.at(cardAddress);
+    const card = cardContract.at(cardAddress);
     // カードの所有者を導出
     const owners = card.getOwnerList().filter((address) => {
-      return +card.owns(address).toString(10) > 0;
+      return +card.balanceOf(address).toString(10) > 0;
     });
-    const accRef = database.ref().child('accounts');
+    const accRef = database.ref().child('accountActivities');
     const payload = {};
     owners.forEach((addr) => {
       payload[`${addr}/txs/${hash}`] = txData;
@@ -149,7 +143,7 @@ const setTransaction = (tx) => {
   }
 
   // TODO ここに書くとちょっと重いかもしれない。。
-  const cardAddresses = CardMasterInstance.getCardAddressList();
+  const cardAddresses = cardMasterInstance.getCardAddresses();
 
   if (cardAddresses.indexOf(tx.to) >= 0) {
     console.log('カードに関する');
@@ -159,21 +153,21 @@ const setTransaction = (tx) => {
       gasUsed,
       value: value.toNumber(),
       inputRaw: tx.input,
-      inputMethod: getMethod(tx.input, CardSIG),
-      inputArgs: getArguments(tx.input, CardSIG),
+      inputMethod: getMethod(tx.input, cardSIG),
+      inputArgs: getArguments(tx.input, cardSIG),
       timestamp,
       sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex)
     };
     // 関連するユーザ
     // tx.toを1枚入以上所有しているユーザ
-    const card = CardContract.at(tx.to);
+    const card = cardContract.at(tx.to);
     // カードの所有者を導出
     const owners = card.getOwnerList().filter((address) => {
-      return +card.owns(address).toString(10) > 0;
+      return +card.balanceOf(address).toString(10) > 0;
     });
     // console.log(owners);
 
-    const accRef = database.ref().child('accounts');
+    const accRef = database.ref().child('accountActivities');
     const payload = {};
     owners.forEach((addr) => {
       payload[`${addr}/txs/${hash}`] = txData;
@@ -181,7 +175,7 @@ const setTransaction = (tx) => {
     accRef.update(payload);
 
     // 関連するカードに設定
-    const caRef = database.ref(`cardAccounts/${tx.to}/txs/${hash}`)
+    const caRef = database.ref(`cardActivities/${tx.to}/txs/${hash}`)
     caRef.set(txData);
     // 履歴データに書き込み
     setTransactionRecord(hash, txData);
@@ -228,7 +222,7 @@ filter.watch(function(error) {
 
   // 確定したブロックを参照するため、ある程度遡ったブロックを参照
   const confirmedBlock = web3.eth.getBlock(web3.eth.blockNumber - backwordNum);
-  console.log("block =>", confirmedBlock.hash, confirmedBlock.transactions.length);
+  // console.log("block =>", confirmedBlock.hash, confirmedBlock.transactions.length);
   confirmedBlock.transactions.forEach(function(txId) {
     const tx = web3.eth.getTransaction(txId);
     setTransaction(tx);

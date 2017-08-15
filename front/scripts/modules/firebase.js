@@ -226,7 +226,7 @@ export default {
      */
     getUserTransactionsRef(etherAccount, latestSortKey){
       let ref = firebase.database()
-        .ref(`accounts/${etherAccount}/txs`)
+        .ref(`accountActivities/${etherAccount}/txs`)
         .orderByChild("sortKey")
         .limitToFirst(5);
       // 次のデータを所得する場合
@@ -243,7 +243,7 @@ export default {
      */
     getCardTransactions(cardAddress, latestSortKey){
       let ref = firebase.database()
-        .ref(`cardAccounts/${cardAddress}/txs`)
+        .ref(`cardActivities/${cardAddress}/txs`)
         .orderByChild("sortKey")
         .limitToFirst(5);
       // 次のデータを所得する場合
