@@ -86,9 +86,8 @@ const web3c = {
   },
 
   // カードを登録
-  addCard(account, name, totalSupply, imageHash, gas) {
-    web3.eth.defaultAccount = account;
-    return cardMasterInstance.addCard(name, totalSupply, imageHash, { gas });
+  addCard(from, name, totalSupply, imageHash, gas) {
+    return cardMasterInstance.addCard(name, totalSupply, imageHash, { from, gas });
   },
 
   /**
@@ -163,30 +162,26 @@ const web3c = {
    * @param {枚数} quantity 枚数
    * @param {number} price 金額
    * @param {string} cardAddress カードアドレス
-   * @param {string} account 実行ユーザアカウント
+   * @param {string} from 実行ユーザアカウント
    * @param {number} gas 送信gas
    */
-  ask: (quantity, price, cardAddress, account, gas) => {
-    console.log('ask', quantity, price, cardAddress, account, {gas});
-    web3.eth.defaultAccount = account;
+  ask: (quantity, price, cardAddress, from, gas) => {
     const card = cardContract.at(cardAddress);
-    console.log(card);
-    return card.ask(quantity, price, { gas });
+    return card.ask(quantity, price, { from, gas });
   },
 
   /**
    * 売り注文を購入
-   * @param {string} account ユーザアカウント
+   * @param {string} from ユーザアカウント
    * @param {string} cardAddress カードアドレス
    * @param {number} askId 選択したaskのid
    * @param {number} gas gas
    * @param {number} ether 総価格(eth)
    */
-  acceptAsk: (account, cardAddress, askId, gas, ether = 0) => {
-    web3.eth.defaultAccount = account;
+  acceptAsk: (from, cardAddress, askId, gas, ether = 0) => {
     const card = cardContract.at(cardAddress);
     const value = web3.toWei(ether, 'ether');
-    return card.acceptAsk(askId, { gas, value });
+    return card.acceptAsk(askId, { from, gas, value });
   },
 
   refreshAskInfo(cardAddress){
@@ -226,11 +221,10 @@ const web3c = {
     return card.askInfos(askIndex);
   },
 
-  bid(account, cardAddress, quantity, price, gas){
-    web3.eth.defaultAccount = account;
+  bid(from, cardAddress, quantity, price, gas){
     const card = cardContract.at(cardAddress);
     const value = quantity * web3.toWei(price, 'ether');
-    return card.bid(quantity, price, { gas, value });
+    return card.bid(quantity, price, { from, gas, value });
   },
 
   /**
@@ -263,16 +257,15 @@ const web3c = {
 
   /**
    * 買い注文(bid)に対して売る
-   * @param {string} account 送信者
+   * @param {string} from 送信者
    * @param {string} cardAddress カードアドレス
    * @param {number} bidIndex 買い注文インデックス
    */
-  acceptBid(account, cardAddress, bidIndex, quantity, gas){
-    web3.eth.defaultAccount = account;
+  acceptBid(from, cardAddress, bidIndex, quantity, gas){
     const card = cardContract.at(cardAddress);
     const bidInfo = bidInfoContract.at(card.bidInfos(bidIndex));
     const value = web3.fromWei(bidInfo.price(), 'ether').mul(quantity).toNumber();
-    return card.acceptBid(bidIndex, quantity, { gas, value });
+    return card.acceptBid(bidIndex, quantity, { from, gas, value });
   },
 
   /**
@@ -287,16 +280,15 @@ const web3c = {
 
   /**
    * カード送信
-   * @param {string} account 送信者
+   * @param {string} from 送信者
    * @param {string} cardAddress カードアドレス
    * @param {number} quantity 数量
    * @param {string} receiver 受領者
    * @param {number} gas gas
    */
-  deal(account, cardAddress, quantity, receiver, gas){
-    web3.eth.defaultAccount = account;
+  deal(from, cardAddress, quantity, receiver, gas){
     const card = cardContract.at(cardAddress);
-    return card.deal(receiver, quantity, { gas });
+    return card.deal(receiver, quantity, { from, gas });
   },
 
   /**
