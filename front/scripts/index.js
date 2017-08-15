@@ -10,7 +10,7 @@ import './tags/components/navbar.tag';
 import './tags/components/card-detail.tag';
 import './tags/components/card-owners.tag';
 import './tags/components/card-bid.tag';
-import './tags/components/card-send.tag';
+import './tags/components/card-deal.tag';
 import './tags/components/card-ask.tag';
 import './tags/components/card-activity.tag';
 import './tags/containers/home.tag';

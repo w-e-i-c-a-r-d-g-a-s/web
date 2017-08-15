@@ -2,7 +2,7 @@ card-bid
   .panel.mb-10
     .panel-header
       .panel-title
-        | カードを売りたい
+        | カードを買いたい
         button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshBidInfo}")
           i.icon.icon-refresh
     .panel-body
@@ -10,78 +10,84 @@ card-bid
         .column.col-3.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-4
           .panel
             .panel-header
-              .panel-title 売り注文
-            .panel-body(if="{opts.numberOfCard > 0}")
+              .panel-title 買い注文
+            .panel-body
               form(autocomplete="off" role="presentation")
                 .form-group
-                  label.form-label(for="input-quantity") 枚数
-                  input#input-quantity.form-input.input-sm(
+                  label.form-label(for="input-bid-quantity") 枚数
+                  input#input-bid-quantity.form-input.input-sm(
                     type="number"
-                    ref="quantity"
-                    oninput="{changeQuantity}"
+                    ref="bidQuantity"
+                    oninput="{changeBidQuantity}"
                     class="{'is-error': quantityError}"
                   )
                   p.form-input-hint {quantityErrorMsg}
-                  label.form-label(for="input-price") 1枚あたりの価格
+                .form-group
+                  label.form-label(for="input-bid-price") 一枚あたりの価格
                   .input-group
-                    input#input-price.form-input.input-sm(
+                    input#input-bid-price.form-input.input-sm(
                       type="text"
-                      ref="price"
-                      oninput="{changePrice}"
+                      ref="bidPrice"
+                      oninput="{changeBidPrice}"
                     )
                     span.input-group-addon.addon-sm Ether
+                  p.form-input-hint 現状整数のみ入力可
                   label.form-label
                   .input-group
                     input.form-input.input-sm(
                       type="text"
                       disabled
-                      ref="wei"
+                      ref="bidWei"
                       value="{wei && wei.toFormat()}"
                     )
                     span.input-group-addon.addon-sm Wei
-            .panel-footer(if="{opts.numberOfCard > 0}")
-              button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 売る
-            .panel-body(if="{opts.numberOfCard === 0}")
-              .empty
-                .empty-icon
-                  i.icon.icon-message(style="font-size: 3rem")
-                h4.empty-title カードを所有していません
-            .panel-footer(if="{opts.numberOfCard === 0}")
+            .panel-footer
+              button.btn.btn-primary.btn-sm(
+                onclick="{bid}"
+                disabled="{!enableBid}"
+              ) 買う
+
         .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
-          h5.inline-block.text-normal 売り注文一覧
-          .empty(if="{opts.bidInfo && opts.bidInfo.length === 0}")
+          h5.inline-block.text-normal 買い注文一覧
+          .empty(if="{opts.bidInfo.length === 0}")
             .empty-icon
               i.icon.icon-message(style="font-size: 3rem")
-            h4.empty-title 現在売り注文はありません
+            h4.empty-title 現在買い注文はありません
           table.table.table-striped.table-hover(if="{opts.bidInfo.length > 0}")
             tr
               th
-              th 売却者
+              th 購入者
               th 枚数
               th 一枚あたりの価格
               th 総価格
-            tr(each="{o, i in opts.bidInfo}" onclick="{selectRow}")
+            tr(each="{o, i in opts.bidInfo}" onclick="{selectBuyOrderRow}")
               td
                 input(
                   type="radio"
-                  name="bidrow"
+                  name="sell"
                   value="{i}"
                   checked="{o.selected}"
-                  onchange="{parent.opts.selectBid}"
-                  if="{o.from !== parent.user.etherAccount.toLowerCase()}"
+                  onchange="{parent.opts.selectSell}"
+                  if="{o.buyer !== parent.user.etherAccount.toLowerCase()}"
                 )
               td
                 .tile.tile-centered
-                  .tile-content.inline-block.text-ellipsis.addr {o.from}
+                  .tile-content.inline-block.text-ellipsis.addr {o.buyer}
               td {o.quantity}
               td.tooltip(data-tooltip="{o.price} Wei") {o.priceEth} Ether
               td.tooltip(data-tooltip="{o.totalPrice} Wei") {o.totalPriceEth} Ether
-          .columns.col-gapless
-            .column.col-12(if="{opts.bidInfo.length > 0}")
-              button.btn.btn-sm.btn-primary(
-                onclick="{acceptBid}"
-                disabled="{!_.isNumber(opts.bidId)}"
-              ) 選択したものを購入
+          .columns.col-gapless(if="{opts.bidInfo.length > 0}")
+            .column.col-12
+              .form-group
+                label.form-label(for="input-buyorder-quantity") 枚数
+                input#input-buyorder-quantity.form-input.input-sm(
+                  type="number" placeholder="" ref="buyOrderQuantity"
+                )
+              .form-group
+                button.btn.btn-sm.btn-primary(
+                  onclick="{acceptBid}"
+                  disabled="{!_.isNumber(opts.bidId)}"
+                ) 選択した価格で売却
     .panel-footer
 
   script.
@@ -93,14 +99,14 @@ card-bid
     /**
      * 枚数を変更
      */
-    changeQuantity(){
+    changeBidQuantity(){
       this.checkBidForm();
     }
 
     /**
      * 価格を変更
      */
-    changePrice(e){
+    changeBidPrice(e){
       const _eth = _.toNumber(e.target.value);
       if(_.isNumber(_eth) && !_.isNaN(_eth)){
         const eth = this.web3c.web3.toBigNumber(_eth);
@@ -115,23 +121,23 @@ card-bid
      * 入力値チェック
      */
     checkBidForm(){
-      const qt = _.toNumber(this.refs.quantity.value);
-      if(qt === 0){
+      if(this.refs.bidQuantity.value === ''){
         this.quantityError = false;
         this.quantityErrorMsg = ''
         this.enableBid = false;
         return;
       }
+      const qt = _.toNumber(this.refs.bidQuantity.value);
       const isValidQt = _.isNumber(qt) && _.isInteger(qt) && qt > 0;
-      if(!isValidQt){
+      if(!isValidQt || qt === 0){
         this.quantityError = true;
         this.quantityErrorMsg = '正しい数値を入力してください'
         this.enableBid = false;
         return;
       }
-      if(this.opts.numberOfCard < qt){
+      if(this.opts.issued < qt){
         this.quantityError = true;
-        this.quantityErrorMsg = '所有枚数を超えています'
+        this.quantityErrorMsg = '発行枚数を超えています'
         this.enableBid = false;
         return;
       }
@@ -141,29 +147,10 @@ card-bid
     }
 
     /**
-     * 売り注文(bid)を発行
+     * 買い注文を選択
      */
-    async bid(e){
-      e.preventDefault();
-      const {quantity, price, wei} = this.refs;
-      if(quantity.value && this.wei){
-        try {
-          await this.opts.bid(+quantity.value, this.wei.toNumber());
-          quantity.value = price.value =  wei.value = '';
-          this.wei = null;
-          this.checkBidForm();
-          this.update();
-        } catch (e) {
-          return;
-        }
-      }
-    }
-
-    /**
-     * 行を選択
-     */
-    selectRow(e){
-      if(e.item.o.from === this.user.etherAccount.toLowerCase()){
+    selectBuyOrderRow(e){
+      if(e.item.o.buyer === this.user.etherAccount.toLowerCase()){
         return;
       }
       this.opts.bidInfo.map((s, i) => s.selected = i === e.item.i);
@@ -171,14 +158,33 @@ card-bid
       this.update();
     }
 
+    async bid(){
+      const { bidQuantity, bidPrice, bidWei } = this.refs;
+      if(bidQuantity.value && this.wei){
+        try {
+          await this.opts.bid(bidQuantity.value, this.wei.toNumber());
+          bidQuantity.value = bidPrice.value = bidWei.value = '';
+          this.wei = null;
+          this.checkBidForm();
+          this.update();
+        } catch(e) {
+          return;
+        }
+      }
+    }
+
     async acceptBid(){
-      try {
-        await this.opts.acceptBid();
-        // チェックをリセット
-        this.opts.bidInfo.map((s, i) => s.selected = false);
-        this.opts.selectBid(null);
-        this.update();
-      } catch (e) {
-        // noop
+      const { buyOrderQuantity } = this.refs;
+      if(buyOrderQuantity.value){
+        try {
+          await this.opts.acceptBid(buyOrderQuantity.value);
+          // チェック、入力をリセット
+          buyOrderQuantity.value = '';
+          this.opts.bidInfo.map((s, i) => s.selected = false);
+          this.opts.selectBid(null);
+          this.update();
+        } catch(e) {
+          return;
+        }
       }
     }

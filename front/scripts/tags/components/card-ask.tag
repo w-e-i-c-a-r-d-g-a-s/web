@@ -2,7 +2,7 @@ card-ask
   .panel.mb-10
     .panel-header
       .panel-title
-        | カードを買いたい
+        | カードを売りたい
         button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshAskInfo}")
           i.icon.icon-refresh
     .panel-body
@@ -10,84 +10,78 @@ card-ask
         .column.col-3.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-4
           .panel
             .panel-header
-              .panel-title 買い注文
-            .panel-body
+              .panel-title 売り注文
+            .panel-body(if="{opts.numberOfCard > 0}")
               form(autocomplete="off" role="presentation")
                 .form-group
-                  label.form-label(for="input-ask-quantity") 枚数
-                  input#input-ask-quantity.form-input.input-sm(
+                  label.form-label(for="input-quantity") 枚数
+                  input#input-quantity.form-input.input-sm(
                     type="number"
-                    ref="askQuantity"
-                    oninput="{changeAskQuantity}"
+                    ref="quantity"
+                    oninput="{changeQuantity}"
                     class="{'is-error': quantityError}"
                   )
                   p.form-input-hint {quantityErrorMsg}
-                .form-group
-                  label.form-label(for="input-ask-price") 一枚あたりの価格
+                  label.form-label(for="input-price") 1枚あたりの価格
                   .input-group
-                    input#input-ask-price.form-input.input-sm(
+                    input#input-price.form-input.input-sm(
                       type="text"
-                      ref="askPrice"
-                      oninput="{changeAskPrice}"
+                      ref="price"
+                      oninput="{changePrice}"
                     )
                     span.input-group-addon.addon-sm Ether
-                  p.form-input-hint 現状整数のみ入力可
                   label.form-label
                   .input-group
                     input.form-input.input-sm(
                       type="text"
                       disabled
-                      ref="askWei"
+                      ref="wei"
                       value="{wei && wei.toFormat()}"
                     )
                     span.input-group-addon.addon-sm Wei
-            .panel-footer
-              button.btn.btn-primary.btn-sm(
-                onclick="{ask}"
-                disabled="{!enableAsk}"
-              ) 買う
-
+            .panel-footer(if="{opts.numberOfCard > 0}")
+              button.btn.btn-primary.btn-sm(onclick="{ask}" disabled="{!enableAsk}") 売る
+            .panel-body(if="{opts.numberOfCard === 0}")
+              .empty
+                .empty-icon
+                  i.icon.icon-message(style="font-size: 3rem")
+                h4.empty-title カードを所有していません
+            .panel-footer(if="{opts.numberOfCard === 0}")
         .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
-          h5.inline-block.text-normal 買い注文一覧
-          .empty(if="{opts.askInfo.length === 0}")
+          h5.inline-block.text-normal 売り注文一覧
+          .empty(if="{opts.askInfo && opts.askInfo.length === 0}")
             .empty-icon
               i.icon.icon-message(style="font-size: 3rem")
-            h4.empty-title 現在買い注文はありません
+            h4.empty-title 現在売り注文はありません
           table.table.table-striped.table-hover(if="{opts.askInfo.length > 0}")
             tr
               th
-              th 購入者
+              th 売却者
               th 枚数
               th 一枚あたりの価格
               th 総価格
-            tr(each="{o, i in opts.askInfo}" onclick="{selectBuyOrderRow}")
+            tr(each="{o, i in opts.askInfo}" onclick="{selectRow}")
               td
                 input(
                   type="radio"
-                  name="sell"
+                  name="askrow"
                   value="{i}"
                   checked="{o.selected}"
-                  onchange="{parent.opts.selectSell}"
-                  if="{o.buyer !== parent.user.etherAccount.toLowerCase()}"
+                  onchange="{parent.opts.selectAsk}"
+                  if="{o.from !== parent.user.etherAccount.toLowerCase()}"
                 )
               td
                 .tile.tile-centered
-                  .tile-content.inline-block.text-ellipsis.addr {o.buyer}
+                  .tile-content.inline-block.text-ellipsis.addr {o.from}
               td {o.quantity}
               td.tooltip(data-tooltip="{o.price} Wei") {o.priceEth} Ether
               td.tooltip(data-tooltip="{o.totalPrice} Wei") {o.totalPriceEth} Ether
-          .columns.col-gapless(if="{opts.askInfo.length > 0}")
-            .column.col-12
-              .form-group
-                label.form-label(for="input-buyorder-quantity") 枚数
-                input#input-buyorder-quantity.form-input.input-sm(
-                  type="number" placeholder="" ref="buyOrderQuantity"
-                )
-              .form-group
-                button.btn.btn-sm.btn-primary(
-                  onclick="{acceptAsk}"
-                  disabled="{!_.isNumber(opts.askId)}"
-                ) 選択した価格で売却
+          .columns.col-gapless
+            .column.col-12(if="{opts.askInfo.length > 0}")
+              button.btn.btn-sm.btn-primary(
+                onclick="{acceptAsk}"
+                disabled="{!_.isNumber(opts.askId)}"
+              ) 選択したものを購入
     .panel-footer
 
   script.
@@ -99,14 +93,14 @@ card-ask
     /**
      * 枚数を変更
      */
-    changeAskQuantity(){
+    changeQuantity(){
       this.checkAskForm();
     }
 
     /**
      * 価格を変更
      */
-    changeAskPrice(e){
+    changePrice(e){
       const _eth = _.toNumber(e.target.value);
       if(_.isNumber(_eth) && !_.isNaN(_eth)){
         const eth = this.web3c.web3.toBigNumber(_eth);
@@ -121,23 +115,23 @@ card-ask
      * 入力値チェック
      */
     checkAskForm(){
-      if(this.refs.askQuantity.value === ''){
+      const qt = _.toNumber(this.refs.quantity.value);
+      if(qt === 0){
         this.quantityError = false;
         this.quantityErrorMsg = ''
         this.enableAsk = false;
         return;
       }
-      const qt = _.toNumber(this.refs.askQuantity.value);
       const isValidQt = _.isNumber(qt) && _.isInteger(qt) && qt > 0;
-      if(!isValidQt || qt === 0){
+      if(!isValidQt){
         this.quantityError = true;
         this.quantityErrorMsg = '正しい数値を入力してください'
         this.enableAsk = false;
         return;
       }
-      if(this.opts.issued < qt){
+      if(this.opts.numberOfCard < qt){
         this.quantityError = true;
-        this.quantityErrorMsg = '発行枚数を超えています'
+        this.quantityErrorMsg = '所有枚数を超えています'
         this.enableAsk = false;
         return;
       }
@@ -147,10 +141,29 @@ card-ask
     }
 
     /**
-     * 買い注文を選択
+     * 売り注文(ask)を発行
      */
-    selectBuyOrderRow(e){
-      if(e.item.o.buyer === this.user.etherAccount.toLowerCase()){
+    async ask(e){
+      e.preventDefault();
+      const {quantity, price, wei} = this.refs;
+      if(quantity.value && this.wei){
+        try {
+          await this.opts.ask(+quantity.value, this.wei.toNumber());
+          quantity.value = price.value =  wei.value = '';
+          this.wei = null;
+          this.checkAskForm();
+          this.update();
+        } catch (e) {
+          return;
+        }
+      }
+    }
+
+    /**
+     * 行を選択
+     */
+    selectRow(e){
+      if(e.item.o.from === this.user.etherAccount.toLowerCase()){
         return;
       }
       this.opts.askInfo.map((s, i) => s.selected = i === e.item.i);
@@ -158,33 +171,14 @@ card-ask
       this.update();
     }
 
-    async ask(){
-      const { askQuantity, askPrice, askWei } = this.refs;
-      if(askQuantity.value && this.wei){
-        try {
-          await this.opts.ask(askQuantity.value, this.wei.toNumber());
-          askQuantity.value = askPrice.value = askWei.value = '';
-          this.wei = null;
-          this.checkAskForm();
-          this.update();
-        } catch(e) {
-          return;
-        }
-      }
-    }
-
     async acceptAsk(){
-      const { buyOrderQuantity } = this.refs;
-      if(buyOrderQuantity.value){
-        try {
-          await this.opts.acceptAsk(buyOrderQuantity.value);
-          // チェック、入力をリセット
-          buyOrderQuantity.value = '';
-          this.opts.askInfo.map((s, i) => s.selected = false);
-          this.opts.selectAsk(null);
-          this.update();
-        } catch(e) {
-          return;
-        }
+      try {
+        await this.opts.acceptAsk();
+        // チェックをリセット
+        this.opts.askInfo.map((s, i) => s.selected = false);
+        this.opts.selectAsk(null);
+        this.update();
+      } catch (e) {
+        // noop
       }
     }

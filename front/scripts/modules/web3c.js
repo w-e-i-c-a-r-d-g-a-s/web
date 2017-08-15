@@ -4,27 +4,46 @@ import ethers from 'ethers';
 import request from 'superagent';
 import { adminAddress, cardMasterAddress, rpcEndpoint } from '../../../etherSetting.json';
 
-const url = rpcEndpoint;
 let web3;
 if (typeof web3 !== 'undefined') {
   web3 = new Web3(web3.currentProvider);
 } else {
-  // set the provider you want from Web3.providers
-  web3 = new Web3(new Web3.providers.HttpProvider(url));
+  web3 = new Web3(new Web3.providers.HttpProvider(rpcEndpoint));
 }
 
-const CardMasterABI = JSON.parse(require('../../../sol/dist/CardMaster.abi'));
-const CardMasterBIN = `0x${require('../../../sol/dist/CardMaster.bin')}`;
-const CardABI = JSON.parse(require('../../../sol/dist/Card.abi'));
-const BuyOrderABI = JSON.parse(require('../../../sol/dist/BuyOrder.abi'));
+import cardMasterSol from '../../../contracts/build/contracts/CardMaster.json';
+import cardSol from '../../../contracts/build/contracts/Card.json';
+import bidInfoSol from '../../../contracts/build/contracts/BidInfo.json';
 
-// 定数
-const CardMasterAddress = cardMasterAddress;
-const CardMasterContract = web3.eth.contract(CardMasterABI);
-const CardMasterInstance = CardMasterContract.at(CardMasterAddress);
+// contractなど
+const cardMasterContract = web3.eth.contract(cardMasterSol.abi);
+const cardContract = web3.eth.contract(cardSol.abi);
+const bidInfoContract = web3.eth.contract(bidInfoSol.abi);
 
-const CardContract = web3.eth.contract(CardABI);
-const BuyOrderContract = web3.eth.contract(BuyOrderABI);
+const cardMasterInstance = cardMasterContract.at(cardMasterAddress);
+
+var filter = web3.eth.filter('latest');
+// watch for changes
+filter.watch((error, result) => {
+  if (error) {
+    console.alert(error);
+    return;
+  }
+  // console.log(result);
+  const block = web3.eth.getBlock(result, true);
+  if(block.transactions.length > 0){
+    block.transactions.forEach((tx, i) => {
+      var receipt = web3.eth.getTransactionReceipt(tx.hash);
+      console.log(tx, receipt);
+      // 注 指定したgasとgasUsedがドンピシャだと成功したことになっている
+      if(receipt.gasUsed === tx.gas){
+        const errorMsg = `Transaction failed (out of gas, thrown) ${receipt.gasUsed}`;
+        console.log(errorMsg);
+        return;
+      }
+    });
+  }
+});
 
 const web3c = {
   web3,
@@ -37,7 +56,7 @@ const web3c = {
     );
 
     return new Promise((resolve, reject) => {
-      executeJsonRpc(url, jsonData).then((res) => {
+      executeJsonRpc(jsonData).then((res) => {
         const data = res.body;
         if(data.error){
           reject(new Error(data.error.message));
@@ -52,9 +71,9 @@ const web3c = {
 
   // カードマスターを登録
   deployCardMaster() {
-    var card_sol_cardmaster = CardMasterContract.new({
+    var card_sol_cardmaster = cardMasterContract.new({
       from: adminAddress,
-      data: CardMasterBIN,
+      data: cardMasterSol.unlinked_binary,
       gas: '4700000'
     }, function (e, contract){
       if(e){
@@ -67,9 +86,9 @@ const web3c = {
   },
 
   // カードを登録
-  addCard(account, name, issued, imageHash, gas) {
+  addCard(account, name, totalSupply, imageHash, gas) {
     web3.eth.defaultAccount = account;
-    return CardMasterInstance.addCard(name, issued, imageHash, { gas });
+    return cardMasterInstance.addCard(name, totalSupply, imageHash, { gas });
   },
 
   /**
@@ -78,19 +97,19 @@ const web3c = {
    * @returns {array} カードデータのリスト
    */
   getCards(account){
-    const cards = CardMasterInstance.getCardAddressList().map((address) => {
-      const card = CardContract.at(address);
+    const cards = cardMasterInstance.getCardAddresses().map((address) => {
+      const card = cardContract.at(address);
       return {
         card,
         address,
         name: web3.toAscii(card.name()),
         imageHash: web3.toAscii(card.imageHash()),
         author: card.author(),
-        issued: card.issued().toString(10)
+        totalSupply: card.totalSupply().toString(10)
       }
     });
     return account ? cards.filter((c) => {
-      return c.card.getOwnerList().filter((address) => address === account && c.card.owns(address).toNumber() > 0).length > 0;
+      return c.card.getOwnerList().filter((address) => address === account && c.card.balanceOf(address).toNumber() > 0).length > 0;
     }) : cards;
   },
 
@@ -102,29 +121,29 @@ const web3c = {
    * @returns {object} カードデータ
    */
   getCardByImageHash(imageHash){
-    const cards = CardMasterInstance.getCardAddressList();
+    const cards = cardMasterInstance.getCardAddresses();
     const hitAddress = _.find(cards, (address) => {
-      const card = CardContract.at(address);
+      const card = cardContract.at(address);
       return imageHash === web3.toAscii(card.imageHash());
     });
-    const card = CardContract.at(hitAddress);
+    const card = cardContract.at(hitAddress);
     return {
       card,
       address: card.address,
       name: web3.toAscii(card.name()),
       imageHash: web3.toAscii(card.imageHash()),
       author: card.author(),
-      issued: card.issued().toString(10)
+      totalSupply: card.totalSupply().toString(10)
     };
   },
 
   // カード情報を取得
   getCard(cardAddress){
-    const card = CardContract.at(cardAddress);
-    const bidInfo = this.getBidInfo(card);
+    const card = cardContract.at(cardAddress);
     const askInfo = this.getAskInfo(card);
+    const bidInfo = this.getBidInfo(card);
     const owners = card.getOwnerList().map((address) => {
-      return { address, num: card.owns(address).toString(10) };
+      return { address, num: card.balanceOf(address).toString(10) };
     });
 
     return {
@@ -132,58 +151,58 @@ const web3c = {
       name: web3.toAscii(card.name()),
       imageHash: web3.toAscii(card.imageHash()),
       author: card.author(),
-      issued: card.issued().toString(10),
+      totalSupply: card.totalSupply().toString(10),
       owners,
-      bidInfo,
-      askInfo
+      askInfo,
+      bidInfo
     }
   },
 
   /**
-   * 売り注文(bid)を発行
+   * 売り注文(ask)を発行
    * @param {枚数} quantity 枚数
    * @param {number} price 金額
    * @param {string} cardAddress カードアドレス
    * @param {string} account 実行ユーザアカウント
    * @param {number} gas 送信gas
    */
-  bid: (quantity, price, cardAddress, account, gas) => {
-    // console.log('sell', quantity, price, cardAddress, account, {gas});
+  ask: (quantity, price, cardAddress, account, gas) => {
+    console.log('ask', quantity, price, cardAddress, account, {gas});
     web3.eth.defaultAccount = account;
-    const card = CardContract.at(cardAddress);
-    return card.sellOrder(quantity, price, { gas });
+    const card = cardContract.at(cardAddress);
+    console.log(card);
+    return card.ask(quantity, price, { gas });
   },
 
   /**
    * 売り注文を購入
-   *
    * @param {string} account ユーザアカウント
    * @param {string} cardAddress カードアドレス
-   * @param {number} bidId 選択したbidのid
+   * @param {number} askId 選択したaskのid
    * @param {number} gas gas
-   * @param {number} ether=0 総価格(eth)
+   * @param {number} ether 総価格(eth)
    */
-  acceptBid: (account, cardAddress, bidId, gas, ether = 0) => {
-    console.log(account, cardAddress, bidId, gas, ether);
+  acceptAsk: (account, cardAddress, askId, gas, ether = 0) => {
     web3.eth.defaultAccount = account;
-    const card = CardContract.at(cardAddress);
+    const card = cardContract.at(cardAddress);
     const value = web3.toWei(ether, 'ether');
-    return card.buy(bidId, { gas, value });
+    return card.acceptAsk(askId, { gas, value });
   },
 
-  refreshBidInfo(cardAddress){
-    const card = CardContract.at(cardAddress);
-    return this.getBidInfo(card);
+  refreshAskInfo(cardAddress){
+    const card = cardContract.at(cardAddress);
+    return this.getAskInfo(card);
   },
 
-  getBidInfo(card){
-    const bidInfo = [];
-    for (let i = 0, len = card.sellInfosLength().toNumber(); i < len; i++) {
-      const [from, quantity, price, active] = card.sellInfos(i);
+  getAskInfo(card){
+    const askInfo = [];
+    console.log(card.getAskInfosCount().toNumber());
+    for (let i = 0, len = card.getAskInfosCount().toNumber(); i < len; i++) {
+      const [from, quantity, price, active] = card.askInfos(i);
       if(!active){
         continue;
       }
-      bidInfo.push({
+      askInfo.push({
         id: i,
         from,
         quantity: quantity.toNumber(),
@@ -194,70 +213,66 @@ const web3c = {
         active
       });
     }
-
-    return bidInfo;
-  },
-
-  /**
-   * 売り注文情報を取得
-   * @param {string} cardAddress カードアドレス
-   * @param {number} bidIndex 売り注文インデックス
-   */
-  getBid(cardAddress, bidIndex){
-    const card = CardContract.at(cardAddress);
-    return card.sellInfos(bidIndex);
-  },
-
-  ask(account, cardAddress, quantity, price, gas,){
-    // console.log(account, cardAddress, quantity, gas, price);
-    web3.eth.defaultAccount = account;
-    const card = CardContract.at(cardAddress);
-    const value = quantity * web3.toWei(price, 'ether');
-    return card.createBuyOrder(quantity, price, { gas, value });
-  },
-
-  /**
-   * 買い注文(Ask)一覧を取得
-   * @param {object} card カードコントラクト
-   */
-  getAskInfo(card){
-    const askInfo = [];
-    // console.log(card.getBuyOrdersCount().toNumber());
-    for (let i = 0, len = card.getBuyOrdersCount().toNumber(); i < len; i++) {
-      const buyOrder = BuyOrderContract.at(card.buyOrders(i));
-      if(!buyOrder.ended()){
-        askInfo.push({
-          id: i,
-          buyer: buyOrder.buyer(),
-          totalPrice: buyOrder.value().toNumber(), // トータル wei
-          totalPriceEth: web3.fromWei(buyOrder.value(), 'ether').toNumber(),
-          quantity: buyOrder.quantity().toNumber(),
-          price: buyOrder.price().toNumber(), // 単価 wei
-          priceEth:web3.fromWei(buyOrder.price(), 'ether').toNumber()
-        });
-      }
-    }
     return askInfo;
   },
 
-  refreshAskInfo(cardAddress){
-    const card = CardContract.at(cardAddress);
-    return this.getAskInfo(card);
+  /**
+   * 売り注文(ask)情報を取得
+   * @param {string} cardAddress カードアドレス
+   * @param {number} askIndex 売り注文インデックス
+   */
+  getAsk(cardAddress, askIndex){
+    const card = cardContract.at(cardAddress);
+    return card.askInfos(askIndex);
+  },
+
+  bid(account, cardAddress, quantity, price, gas){
+    web3.eth.defaultAccount = account;
+    const card = cardContract.at(cardAddress);
+    const value = quantity * web3.toWei(price, 'ether');
+    return card.bid(quantity, price, { gas, value });
   },
 
   /**
-   * 買い注文に対して売る
+   * 買い注文(bid)一覧を取得
+   * @param {object} card カードコントラクト
+   */
+  getBidInfo(card){
+    const bidInfos = [];
+    for (let i = 0, len = card.getBidInfosCount().toNumber(); i < len; i++) {
+      const bidInfo = bidInfoContract.at(card.bidInfos(i));
+      if(!bidInfo.ended()){
+        bidInfos.push({
+          id: i,
+          buyer: bidInfo.buyer(),
+          totalPrice: bidInfo.value().toNumber(), // トータル wei
+          totalPriceEth: web3.fromWei(bidInfo.value(), 'ether').toNumber(),
+          quantity: bidInfo.quantity().toNumber(),
+          price: bidInfo.price().toNumber(), // 単価 wei
+          priceEth:web3.fromWei(bidInfo.price(), 'ether').toNumber()
+        });
+      }
+    }
+    return bidInfos;
+  },
+
+  refreshBidInfo(cardAddress){
+    const card = cardContract.at(cardAddress);
+    return this.getBidInfo(card);
+  },
+
+  /**
+   * 買い注文(bid)に対して売る
    * @param {string} account 送信者
    * @param {string} cardAddress カードアドレス
    * @param {number} bidIndex 買い注文インデックス
    */
-  acceptAsk(account, cardAddress, bidIndex, quantity, gas){
+  acceptBid(account, cardAddress, bidIndex, quantity, gas){
     web3.eth.defaultAccount = account;
-    const card = CardContract.at(cardAddress);
-    const buyOrder = BuyOrderContract.at(card.buyOrders(bidIndex));
-    const value = web3.fromWei(buyOrder.price(), 'ether').mul(quantity).toNumber();
-    // console.log(bidIndex, quantity, { gas, value });
-    return card.sell(bidIndex, quantity, { gas, value });
+    const card = cardContract.at(cardAddress);
+    const bidInfo = bidInfoContract.at(card.bidInfos(bidIndex));
+    const value = web3.fromWei(bidInfo.price(), 'ether').mul(quantity).toNumber();
+    return card.acceptBid(bidIndex, quantity, { gas, value });
   },
 
   /**
@@ -265,9 +280,9 @@ const web3c = {
    * @param {string} cardAddress カードアドレス
    * @param {number} askIndex 買い注文インデックス
    */
-  getAsk(cardAddress, askIndex){
-    const card = CardContract.at(cardAddress);
-    return BuyOrderContract.at(card.buyOrders(askIndex));
+  getBid(cardAddress, askIndex){
+    const card = cardContract.at(cardAddress);
+    return bidInfoContract.at(card.bidInfos(askIndex));
   },
 
   /**
@@ -278,10 +293,10 @@ const web3c = {
    * @param {string} receiver 受領者
    * @param {number} gas gas
    */
-  send(account, cardAddress, quantity, receiver, gas){
+  deal(account, cardAddress, quantity, receiver, gas){
     web3.eth.defaultAccount = account;
-    const card = CardContract.at(cardAddress);
-    return card.send(receiver, quantity, { gas });
+    const card = cardContract.at(cardAddress);
+    return card.deal(receiver, quantity, { gas });
   },
 
   /**
@@ -302,11 +317,10 @@ const createJSONdata = (method, params) => ({
   params: params
 });
 
-const executeJsonRpc = (url, json, s, er) => {
-  return request.post(url)
+const executeJsonRpc = (json) => {
+  return request.post(rpcEndpoint)
     .set('Content-Type', 'application/json')
     .send(JSON.stringify(json))
-
 };
 
 export default web3c;

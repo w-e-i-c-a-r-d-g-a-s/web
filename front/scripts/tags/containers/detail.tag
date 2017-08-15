@@ -12,26 +12,26 @@ detail
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
         card-activity(card-address="{opts.cardAddress}")
-        card-ask(
-          ask="{ask}"
-          refresh-ask-info="{refreshAskInfo}"
-          ask-info="{card.askInfo}"
-          select-ask="{selectAsk}"
-          ask-id="{askId}"
-          accept-ask="{acceptAsk}"
-          issued="{card.issued}"
-        )
         card-bid(
-          accept-bid="{acceptBid}"
           bid="{bid}"
           refresh-bid-info="{refreshBidInfo}"
           bid-info="{card.bidInfo}"
           select-bid="{selectBid}"
           bid-id="{bidId}"
+          accept-bid="{acceptBid}"
+          issued="{card.totalSupply}"
+        )
+        card-ask(
+          accept-ask="{acceptAsk}"
+          ask="{ask}"
+          refresh-ask-info="{refreshAskInfo}"
+          ask-info="{card.askInfo}"
+          select-ask="{selectAsk}"
+          ask-id="{askId}"
           number-of-card="{numberOfCard}"
         )
-        card-send(
-          send="{send}"
+        card-deal(
+          deal="{deal}"
           number-of-card="{numberOfCard}"
         )
     password-modal(
@@ -69,14 +69,14 @@ detail
     });
 
     /**
-     * 売り注文(bid)を発行
+     * 売り注文(ask)を発行
      *
      * @param {number} quantity 数量
      * @param {number} wei 一枚あたりの価格(wei)
      * @returns {Promise}
      */
-    bid(quantity, wei){
-      const gas = 200000;
+    ask(quantity, wei){
+      const gas = 135603;
       const { address } = this.card;
       const { etherAccount } = this.user;
       return new Promise(async (resolve, reject) => {
@@ -84,7 +84,7 @@ detail
         try {
           await this.inputUnlock();
           try {
-            const tx = this.web3c.bid(quantity, wei, address, etherAccount, gas);
+            const tx = this.web3c.ask(quantity, wei, address, etherAccount, gas);
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
@@ -101,13 +101,13 @@ detail
     }
 
     /**
-     * 選択した買い注文を購入
+     * 選択した売り注文を購入
      * @param {number} quantity 数量
      * @param {number} wei 1枚あたりの価格(wei)
      * @returns {Promise}
      */
-    acceptBid(){
-      const selectedBid = this.card.bidInfo[this.bidId];
+    acceptAsk(){
+      const selectedAsk = this.card.askInfo[this.askId];
       const gas = 208055;
       const { address } = this.card;
       const { etherAccount } = this.user;
@@ -115,8 +115,8 @@ detail
         try {
           await this.inputUnlock();
           try {
-            const { id, totalPriceEth } = selectedBid;
-            const tx = this.web3c.acceptBid(etherAccount, address, id, gas, totalPriceEth);
+            const { id, totalPriceEth } = selectedAsk;
+            const tx = this.web3c.acceptAsk(etherAccount, address, id, gas, totalPriceEth);
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
@@ -141,6 +141,14 @@ detail
       this.update();
     }
 
+    refreshAskInfo(){
+      this.card = assign({}, this.card, {
+        askInfo: this.web3c.refreshAskInfo(this.card.address)
+      });
+      console.log(this.card.askInfo);
+      this.update();
+    }
+
     refreshBidInfo(){
       this.card = assign({}, this.card, {
         bidInfo: this.web3c.refreshBidInfo(this.card.address)
@@ -148,20 +156,13 @@ detail
       this.update();
     }
 
-    refreshAskInfo(){
-      this.card = assign({}, this.card, {
-        askInfo: this.web3c.refreshAskInfo(this.card.address)
-      });
-      this.update();
-    }
-
     /**
-     * 買い注文を発行
+     * 買い注文(bid)を発行
      * @param {number} quantity 数量
      * @param {number} wei 1枚あたりの価格(wei)
      * @returns {Promise}
      */
-    ask(quantity, wei){
+    bid(quantity, wei){
       // TODO ここで単位をetherに変換
       const price = this.web3c.web3.fromWei(wei, 'ether');
       const gas = 800000;
@@ -171,7 +172,7 @@ detail
         try {
           await this.inputUnlock();
           try{
-            const tx = this.web3c.ask(etherAccount, address, quantity, price, gas);
+            const tx = this.web3c.bid(etherAccount, address, quantity, price, gas);
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
@@ -186,8 +187,8 @@ detail
       });
     }
 
-    acceptAsk(quantity){
-      const selectedAsk = this.card.askInfo[this.askId];
+    acceptBid(quantity){
+      const selectedBid = this.card.bidInfo[this.bidId];
       const gas = 1523823;
       const { address } = this.card;
       const { etherAccount } = this.user;
@@ -195,7 +196,7 @@ detail
         try{
           await this.inputUnlock();
           try{
-            const tx = this.web3c.acceptAsk(etherAccount, address, selectedAsk.id, quantity, gas);
+            const tx = this.web3c.acceptBid(etherAccount, address, selectedBid.id, quantity, gas);
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
@@ -244,7 +245,7 @@ detail
      * @param {number} quantity 数量
      * @param {string} receiver 受信者のアドレス
      */
-    send(quantity, receiver){
+    deal(quantity, receiver){
       const gas = 200000;
       const { address } = this.card;
       const { etherAccount } = this.user;
@@ -252,7 +253,7 @@ detail
         try {
           await this.inputUnlock();
           try{
-            const tx = this.web3c.send(etherAccount, address, quantity, receiver, gas);
+            const tx = this.web3c.deal(etherAccount, address, quantity, receiver, gas);
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
