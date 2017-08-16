@@ -41,8 +41,8 @@ admin
     deleteFirebaseData(){
       if(window.confirm('delete all data?')){
         const db = this.firebase._firebase.database()
-        db.ref('accounts').remove();
-        db.ref('cardAccounts').remove();
+        db.ref('accountActivities').remove();
+        db.ref('cardActivities').remove();
         db.ref('cards').remove();
         db.ref('tags').remove();
         db.ref('transactions').remove();
