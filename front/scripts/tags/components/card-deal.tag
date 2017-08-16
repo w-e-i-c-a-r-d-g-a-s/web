@@ -65,7 +65,7 @@ card-deal
         this.enableDeal = false;
         return;
       }
-      if(this.opts.issued < qt){
+      if(this.opts.totalSupply < qt){
         this.quantityError = true;
         this.quantityErrorMsg = '発行枚数を超えています'
         this.enableDeal = false;

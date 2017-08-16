@@ -147,6 +147,19 @@ const setTransaction = (tx) => {
 
   if (cardAddresses.indexOf(tx.to) >= 0) {
     console.log('カードに関する');
+    const logData = receipt.logs[0];
+    if(logData){
+      const logs = logData.data.slice(2).match(/.{1,64}/g);
+      const transactionCount = web3.toDecimal(`0x${logs[0]}`);
+      const marketPrice = web3.toDecimal(`0x${logs[1]}`);
+      const diff = web3.toDecimal(`0x${logs[2]}`);
+      const isNegative = web3.toDecimal(`0x${logs[3]}`) === 1;
+      console.log(transactionCount, marketPrice, diff, isNegative);
+      const cpRef = database.ref(`cardPrice/${tx.to}/${transactionCount}`)
+      cpRef.set({
+        transactionCount, marketPrice, diff, isNegative
+      });
+    }
     const txData = {
       gas,
       gasPrice: gasPrice.toNumber(),

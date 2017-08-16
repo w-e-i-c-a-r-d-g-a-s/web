@@ -87,7 +87,7 @@ upload
       name: PH_NAME,
       address: '0x999999999999999999999999999999999',
       imageUrl: PH_IMAGE_URL,
-      issued: PH_TS
+      totalSupply: PH_TS
     };
 
     this.on('mount', async () => {
@@ -174,7 +174,7 @@ upload
         try {
           this.firebase.createCard(this.fileHash, {
             name: cardName.value,
-            issued: +totalSupply.value,
+            totalSupply: +totalSupply.value,
             url,
             tags: this.tagSet.toJSON()
           });
@@ -223,7 +223,7 @@ upload
       file.value = '';
       this.tagSet.clear();
       this.card.name = PH_NAME;
-      this.card.issued = PH_TS;
+      this.card.totalSupply = PH_TS;
       this.card.imageUrl = PH_IMAGE_URL;
       this.checkForm();
     }
@@ -237,7 +237,7 @@ upload
     }
 
     changeTs(e){
-      this.card.issued = e.target.value;
+      this.card.totalSupply = e.target.value;
       if(e.target.value.length === 0){
         this.card.name = PH_TS;
       }

@@ -151,6 +151,7 @@ const web3c = {
       imageHash: web3.toAscii(card.imageHash()),
       author: card.author(),
       totalSupply: card.totalSupply().toString(10),
+      currentMarketPrice: web3.fromWei(card.currentMarketPrice().toNumber(), 'ether'),
       owners,
       askInfo,
       bidInfo

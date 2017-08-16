@@ -9,7 +9,7 @@ card
     .card-body
       .columns
         .column.col-4 発行枚数
-        .column.col-8 {opts.card.issued}
+        .column.col-8 {opts.card.totalSupply}
       .columns
         .column.col-4 作成者
         .column.col-8

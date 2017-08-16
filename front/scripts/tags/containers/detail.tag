@@ -6,6 +6,9 @@ detail
           .column.col-12.col-xs-12.col-sm-6.col-md-5.col-lg-12.col-xl-12
             card(card="{card}" single="{true}")
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
+            h5 Price
+            p {card.currentMarketPrice} eth
+            h5 tags
             a.chip(href="#/tags/{tag}" each="{tag in card.tags}") {tag}
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
             card-owners(card="{card}")
@@ -19,7 +22,7 @@ detail
           select-bid="{selectBid}"
           bid-id="{bidId}"
           accept-bid="{acceptBid}"
-          issued="{card.totalSupply}"
+          total-supply="{card.totalSupply}"
         )
         card-ask(
           accept-ask="{acceptAsk}"
@@ -32,6 +35,7 @@ detail
         )
         card-deal(
           deal="{deal}"
+          total-supply="{card.totalSupply}"
           number-of-card="{numberOfCard}"
         )
     password-modal(
@@ -66,6 +70,13 @@ detail
       })
       this.numberOfCard = owned ? owned.num : 0;
       this.update();
+
+      // 最新のデータ
+      this.firebase._firebase.database().ref(`cardPrice/${this.opts.cardAddress}`)
+        .orderByKey().limitToLast(5)
+        .on('value', (ss) => {
+          console.log(ss.val());
+        });
     });
 
     /**
