@@ -7,7 +7,6 @@ import '../styles/app.css';
 import './tags/app.tag';
 import './tags/components/card.tag';
 import './tags/components/navbar.tag';
-import './tags/components/card-detail.tag';
 import './tags/components/card-owners.tag';
 import './tags/components/card-bid.tag';
 import './tags/components/card-deal.tag';
