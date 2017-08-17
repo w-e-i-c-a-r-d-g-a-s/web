@@ -8,6 +8,8 @@ detail
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
             h5 Price
             p {card.currentMarketPrice} eth
+            h5 Chart
+            #chart(style="width: 100%; height: 200px")
             h5 tags
             a.chip(href="#/tags/{tag}" each="{tag in card.tags}") {tag}
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
@@ -73,11 +75,54 @@ detail
 
       // 最新のデータ
       this.firebase._firebase.database().ref(`cardPrice/${this.opts.cardAddress}`)
-        .orderByKey().limitToLast(5)
+        .orderByKey().limitToLast(15)
         .on('value', (ss) => {
-          console.log(ss.val());
+          const data = [
+            ['transactionCount', 'marketPrice', 'diff']
+          ];
+          ss.forEach((sss, i) => {
+            const { transactionCount, diff, isNegative, marketPrice } = sss.val();
+            // 最初のdiffは0にする
+            const _diff = transactionCount === 1 ? 0 : isNegative ? -1 * diff : diff;
+            data.push([
+              transactionCount,
+              this.web3c.weiToEth(marketPrice),
+              this.web3c.weiToEth(_diff)
+            ]);
+          });
+          this.drawChart(data);
         });
     });
+
+    drawChart(_data){
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable(_data);
+
+        var options = {
+          legend: { position: 'bottom' },
+          hAxis: { textPosition: 'none' },
+          vAxis: {
+            title: 'Ether'
+          },
+          chartArea:{
+
+            top: 10,
+            bottom: 30,
+            left:50,
+            right: 30,
+            width:"100%",
+            height:"100%"
+          }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('chart'));
+
+        chart.draw(data, options);
+      }
+    }
 
     /**
      * 売り注文(ask)を発行

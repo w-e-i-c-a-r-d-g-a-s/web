@@ -22,11 +22,12 @@ const bidInfoContract = web3.eth.contract(bidInfoSol.abi);
 
 const cardMasterInstance = cardMasterContract.at(cardMasterAddress);
 
+/*
 var filter = web3.eth.filter('latest');
 // watch for changes
 filter.watch((error, result) => {
   if (error) {
-    console.alert(error);
+    console.error(error);
     return;
   }
   // console.log(result);
@@ -44,6 +45,7 @@ filter.watch((error, result) => {
     });
   }
 });
+*/
 
 const web3c = {
   web3,
@@ -192,7 +194,6 @@ const web3c = {
 
   getAskInfo(card){
     const askInfo = [];
-    console.log(card.getAskInfosCount().toNumber());
     for (let i = 0, len = card.getAskInfosCount().toNumber(); i < len; i++) {
       const [from, quantity, price, active] = card.askInfos(i);
       if(!active){
@@ -298,7 +299,7 @@ const web3c = {
    * @returns {number} Ethの額
    */
   weiToEth(wei){
-    return web3.fromWei(wei, 'ether');
+    return +web3.fromWei(wei, 'ether');
   }
 
 };

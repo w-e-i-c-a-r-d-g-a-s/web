@@ -55,7 +55,7 @@ card-activity
           this.activities.unshift(v);
         }
         // this.updateDispActivities();
-        console.table(this.activities);
+        // console.table(this.activities);
         this.update();
         this.latestSK = _.last(this.activities).sortKey;
       });
