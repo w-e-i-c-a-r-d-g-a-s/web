@@ -2,7 +2,6 @@ const fs = require('fs');
 const express = require('express');
 const router = express.Router();
 const ethers = require('ethers');
-const User = require('../models/User');
 const etherSetting = require('../etherSetting.json');
 
 router.post('/', (req, res) => {

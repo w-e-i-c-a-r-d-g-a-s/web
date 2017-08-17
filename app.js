@@ -10,7 +10,6 @@ const admin = require("firebase-admin");
 const index = require('./routes/index');
 const login = require('./routes/login');
 const newWallet = require('./routes/newWallet');
-const User = require('./models/User');
 
 const etherSetting = require('./etherSetting.json');
 const serviceAccount = require("./serviceAccountKey.json");
