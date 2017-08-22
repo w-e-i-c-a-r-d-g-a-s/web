@@ -1,5 +1,5 @@
 card-bid
-  .panel.mb-10
+  .panel.mt-2
     .panel-header
       .panel-title
         | カードを買いたい

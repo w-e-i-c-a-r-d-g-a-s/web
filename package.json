@@ -46,7 +46,7 @@
     "riotjs-loader": "^4.0.0",
     "serve-favicon": "~2.4.2",
     "spark-md5": "^3.0.0",
-    "spectre.css": "^0.2.14",
+    "spectre.css": "^0.3.1",
     "style-loader": "^0.18.2",
     "superagent": "^3.5.2",
     "utf8": "^2.1.2",

@@ -3,16 +3,11 @@ detail
     .columns
       .column.col-3.col-xs-12.col-sm-12.col-md-12.col-lg-4.col-xl-3
         .columns
-          .column.col-12.col-xs-12.col-sm-6.col-md-5.col-lg-12.col-xl-12
+          .column.col-12.col-xs-12.col-sm-6.col-md-5.col-lg-12.col-xl-12.my-2
             card(card="{card}" single="{true}")
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
-            h5 Price
-            p {card.currentMarketPrice} eth
-            h5 Chart
-            #chart(style="width: 100%; height: 200px")
-            h5 tags
-            a.chip(href="#/tags/{tag}" each="{tag in card.tags}") {tag}
-          .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
+            card-prices(card="{card}")
+            card-tags(card="{card}")
             card-owners(card="{card}")
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
@@ -72,57 +67,7 @@ detail
       })
       this.numberOfCard = owned ? owned.num : 0;
       this.update();
-
-      // 最新のデータ
-      this.firebase._firebase.database().ref(`cardPrice/${this.opts.cardAddress}`)
-        .orderByKey().limitToLast(15)
-        .on('value', (ss) => {
-          const data = [
-            ['transactionCount', 'marketPrice', 'diff']
-          ];
-          ss.forEach((sss, i) => {
-            const { transactionCount, diff, isNegative, marketPrice } = sss.val();
-            // 最初のdiffは0にする
-            const _diff = transactionCount === 1 ? 0 : isNegative ? -1 * diff : diff;
-            data.push([
-              transactionCount,
-              this.web3c.weiToEth(marketPrice),
-              this.web3c.weiToEth(_diff)
-            ]);
-          });
-          this.drawChart(data);
-        });
     });
-
-    drawChart(_data){
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable(_data);
-
-        var options = {
-          legend: { position: 'bottom' },
-          hAxis: { textPosition: 'none' },
-          vAxis: {
-            title: 'Ether'
-          },
-          chartArea:{
-
-            top: 10,
-            bottom: 30,
-            left:50,
-            right: 30,
-            width:"100%",
-            height:"100%"
-          }
-        };
-
-        var chart = new google.visualization.LineChart(document.getElementById('chart'));
-
-        chart.draw(data, options);
-      }
-    }
 
     /**
      * 売り注文(ask)を発行

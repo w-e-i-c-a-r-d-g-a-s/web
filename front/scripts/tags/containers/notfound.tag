@@ -1,3 +1,3 @@
 notfound
   .container.page
-    h5.mt-10 page not found.
+    h5.mt-2 page not found.

@@ -1,7 +1,7 @@
 card-deal
   .columns
     .column.col-6.col-xs-12.col-sm-12.col-md-12
-      .panel.mb-10
+      .panel.mt-2
         .panel-header
           .panel-title
             | カードを配布

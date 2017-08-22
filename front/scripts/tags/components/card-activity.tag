@@ -1,5 +1,5 @@
 card-activity
-  .panel.mb-10
+  .panel.mt-2
     .panel-header
       .panel-title
         | Card Activity
@@ -15,8 +15,8 @@ card-activity
             tr(each="{act in activities}")
               td {(new Date(+act.timestamp * 1000)).toLocaleString("ja")}
               td
-                span.label.label-success.mr-10(if="{act.isDeal}") 売買
-                span.label.mr-10(if="{!act.isDeal}") 発行
+                span.label.label-success.mx-1(if="{act.isDeal}") 売買
+                span.label.mx-1(if="{!act.isDeal}") 発行
                 | {act.text}
       .panel-footer
 

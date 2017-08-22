@@ -1,5 +1,5 @@
 card-ask
-  .panel.mb-10
+  .panel.mt-2
     .panel-header
       .panel-title
         | カードを売りたい

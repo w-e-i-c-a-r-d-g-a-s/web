@@ -19,11 +19,11 @@ activity
                   .tile-content
                     p.tile-subtitle {(new Date(+act.timestamp * 1000)).toLocaleString("ja")}
                     p.tile-title(each="{ acts in act.activities }")
-                      span.label.label-primary.mr-10(if="{acts.inputMethod === 'addCard'}") カード発行
-                      span.label.label-success.mr-10(if="{acts.inputMethod !== 'addCard'}") カード売買
+                      span.label.label-primary.mx-1(if="{acts.inputMethod === 'addCard'}") カード発行
+                      span.label.label-success.mx-1(if="{acts.inputMethod !== 'addCard'}") カード売買
                       a(href="#/cards/{acts.card.address}") {acts.card.name}
                       span : {getActivityText(acts)}
-          .btn.mt-10(if="{isShowNext}" onclick="{getNext}" class="{loading: isNextLoading}") next
+          button.btn.mt-2(if="{isShowNext}" onclick="{getNext}" class="{loading: isNextLoading}") next
       .column.col-3
   script.
     import _ from 'lodash';

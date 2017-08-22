@@ -1,10 +1,10 @@
 card-owners
-  .panel
+  .panel.mt-2
     .panel-header
-      .panel-title Card Owners
+      .panel-title.h5 Card Owners
     .panel-body
-      span.block author:
-      span.text-break.inline-block.text-ellipsis.addr {opts.card.author}
+      // span.d-block author:
+      // span.text-break.d-inline-block.text-ellipsis.addr {opts.card.author}
       table.table.table-striped.table-hover
         tr
           th account
@@ -14,6 +14,6 @@ card-owners
             .tile.tile-centered
               .tile-icon
                 img.avatar.avatar-sm(src="{ firebase.addressToPhotoUrl[o.address] }")
-              .tile-content.inline-block.text-ellipsis.addr {o.address}
+              .tile-content.d-inline-block.text-ellipsis.addr {o.address}
           td {o.num}
     .panel-footer
