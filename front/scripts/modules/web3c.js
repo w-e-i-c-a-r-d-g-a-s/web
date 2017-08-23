@@ -222,7 +222,7 @@ const web3c = {
         active
       });
     }
-    return askInfo;
+    return _.sortBy(askInfo, ['price', 'totalPrice']);
   },
 
   /**
@@ -261,7 +261,7 @@ const web3c = {
         });
       }
     }
-    return bidInfos;
+    return _.orderBy(bidInfos, ['price', 'totalPrice'], ['desc', 'desc']);
   },
 
   refreshBidInfo(cardAddress){

@@ -56,12 +56,15 @@ card-ask
           table.table.table-striped.table-hover(if="{opts.askInfo.length > 0}")
             tr
               th
+              th
               th 売却者
               th 枚数
               th 一枚あたりの価格
               th 総価格
               th
             tr(each="{o, i in opts.askInfo}" onclick="{selectRow}")
+              td
+                small.bg-success.text-light.p-1.rounded(show="{i === 0}") 最安値!
               td
                 input(
                   type="radio"
