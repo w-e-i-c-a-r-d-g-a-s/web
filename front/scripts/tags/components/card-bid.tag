@@ -60,6 +60,7 @@ card-bid
               th 枚数
               th 一枚あたりの価格
               th 総価格
+              th
             tr(each="{o, i in opts.bidInfo}" onclick="{selectBuyOrderRow}")
               td
                 input(
@@ -76,6 +77,9 @@ card-bid
               td {o.quantity}
               td.tooltip(data-tooltip="{o.price} Wei") {o.priceEth} Ether
               td.tooltip(data-tooltip="{o.totalPrice} Wei") {o.totalPriceEth} Ether
+              td
+                button.btn.btn-sm(if="{o.buyer === parent.user.etherAccount.toLowerCase()}" onclick="{cancelBid}") 取消
+
           .columns.col-gapless(if="{opts.bidInfo.length > 0}")
             .column.col-12
               .form-group
@@ -186,5 +190,18 @@ card-bid
         } catch(e) {
           return;
         }
+      }
+    }
+
+    cancelBid(e){
+      try {
+        this.opts.cancelBid(e.item.i);
+        // チェック、入力をリセット
+        // buyOrderQuantity.value = '';
+        // this.opts.bidInfo.map((s, i) => s.selected = false);
+        // this.opts.selectBid(null);
+        // this.update();
+      } catch(e) {
+        console.error(e, 'fail: cancelBid');
       }
     }

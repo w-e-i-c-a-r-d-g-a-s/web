@@ -146,6 +146,11 @@ const setTransaction = (tx) => {
   const cardAddresses = cardMasterInstance.getCardAddresses();
 
   if (cardAddresses.indexOf(tx.to) >= 0) {
+    const inputMethod = getMethod(tx.input, cardSIG);
+    // 売り注文の取り消しは無視する
+    if(inputMethod === 'closeAsk'){
+      return;
+    }
     console.log('カードに関する');
     const logData = receipt.logs[0];
     if(logData){
@@ -166,7 +171,7 @@ const setTransaction = (tx) => {
       gasUsed,
       value: value.toNumber(),
       inputRaw: tx.input,
-      inputMethod: getMethod(tx.input, cardSIG),
+      inputMethod,
       inputArgs: getArguments(tx.input, cardSIG),
       timestamp,
       sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex)

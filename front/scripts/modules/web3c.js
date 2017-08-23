@@ -187,6 +187,18 @@ const web3c = {
     return card.acceptAsk(askId, { from, gas, value });
   },
 
+  /**
+   * 売り注文(ask)をキャンセル
+   * @param {string} from 送信者
+   * @param {string} cardAddress カードアドレス
+   * @param {number} askIndex 買い注文インデックス
+   * @param {number} gas gas
+   */
+  cancelAsk(from, cardAddress, askIndex, gas){
+    const card = cardContract.at(cardAddress);
+    return card.closeAsk(askIndex, { from, gas });
+  },
+
   refreshAskInfo(cardAddress){
     const card = cardContract.at(cardAddress);
     return this.getAskInfo(card);
@@ -268,6 +280,19 @@ const web3c = {
     const bidInfo = bidInfoContract.at(card.bidInfos(bidIndex));
     const value = web3.fromWei(bidInfo.price(), 'ether').mul(quantity).toNumber();
     return card.acceptBid(bidIndex, quantity, { from, gas, value });
+  },
+
+  /**
+   * 買い注文(bid)をキャンセル
+   * @param {string} from 送信者
+   * @param {string} cardAddress カードアドレス
+   * @param {number} bidIndex 買い注文インデックス
+   * @param {number} gas gas
+   */
+  cancelBid(from, cardAddress, bidIndex, gas){
+    const card = cardContract.at(cardAddress);
+    const bidInfo = bidInfoContract.at(card.bidInfos(bidIndex));
+    return bidInfo.close({ from, gas });
   },
 
   /**

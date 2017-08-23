@@ -60,6 +60,7 @@ card-ask
               th 枚数
               th 一枚あたりの価格
               th 総価格
+              th
             tr(each="{o, i in opts.askInfo}" onclick="{selectRow}")
               td
                 input(
@@ -76,7 +77,9 @@ card-ask
               td {o.quantity}
               td.tooltip(data-tooltip="{o.price} Wei") {o.priceEth} Ether
               td.tooltip(data-tooltip="{o.totalPrice} Wei") {o.totalPriceEth} Ether
-          .columns.col-gapless
+              td
+                button.btn.btn-sm(if="{o.from === parent.user.etherAccount.toLowerCase()}" onclick="{cancelAsk}") 取消
+          .columns.col-gapless.mt-2
             .column.col-12(if="{opts.askInfo.length > 0}")
               button.btn.btn-sm.btn-primary(
                 onclick="{acceptAsk}"
@@ -177,6 +180,15 @@ card-ask
         // チェックをリセット
         this.opts.askInfo.map((s, i) => s.selected = false);
         this.opts.selectAsk(null);
+        this.update();
+      } catch (e) {
+        // noop
+      }
+    }
+
+    async cancelAsk(e){
+      try {
+        await this.opts.cancelAsk(e.item.i);
         this.update();
       } catch (e) {
         // noop
