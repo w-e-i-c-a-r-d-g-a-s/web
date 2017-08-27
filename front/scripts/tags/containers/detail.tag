@@ -45,7 +45,7 @@ detail
     )
   script.
     import Deferred from 'es6-deferred';
-    import { assign } from 'lodash';
+    import { assign, throttle } from 'lodash';
     this.bidId = null;
     this.askId = null;
     this.card = {
@@ -59,8 +59,9 @@ detail
     this.numberOfCard = 0;
 
     this.on('mount', async () => {
-      this.card = this.web3c.getCard(this.opts.cardAddress);
       this.cardActivityRef = this.firebase.getCardTransactions(this.opts.cardAddress);
+
+      this.card = this.web3c.getCard(this.opts.cardAddress);
       const cardData = await this.firebase.getCard(this.card.imageHash);
       this.card.imageUrl = cardData.url;
       this.card.tags = cardData.tags;
@@ -71,6 +72,10 @@ detail
       })
       this.numberOfCard = owned ? owned.num : 0;
       this.update();
+      const setUpdateData = throttle(this.setUpdateData, 1000, {
+        trailing: false,
+        leading: true
+      });
 
       // カード履歴
       this.cardActivityRef.on('child_added', (ss, prevChildKey) => {
@@ -89,8 +94,8 @@ detail
           // 前のデータがないときは先頭に
           this.activities.unshift(v);
         }
-        // this.updateDispActivities();
-        // console.table(this.activities);
+        // オーナ情報、ask, bidを付け直す
+        setUpdateData();
         this.update();
       });
     });
@@ -98,6 +103,17 @@ detail
     this.on('unmount', () => {
       this.cardActivityRef.off('child_added');
     });
+
+    /**
+     * カードの更新データを取得
+     */
+    setUpdateData(){
+      const newCardData = this.web3c.getCard(this.opts.cardAddress);
+      this.card.bidInfo = newCardData.bidInfo;
+      this.card.askInfo = newCardData.askInfo;
+      this.card.currentMarketPrice = newCardData.currentMarketPrice;
+      this.card.owners = newCardData.owners;
+    }
 
     /**
      * 売り注文(ask)を発行
@@ -146,7 +162,6 @@ detail
         try {
           await this.inputUnlock();
           try {
-            console.log(selectedAsk);
             const { id, price } = selectedAsk;
             const tx = this.web3c.acceptAsk(etherAccount, address, id, quantity, gas, price * quantity);
             this.opts.obs.trigger('notifySuccess', {
