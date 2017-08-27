@@ -52,8 +52,7 @@ etherSetteingの中身はgethの設定により適宜書き換えるようにし
 ### solidityのコンパイル実行
 
 ```
-$ cd contracts
-$ truffle compile
+$ (cd contracts && truffle compile)
 ```
 
 `./contracts/build/contracts`にコンパイルされたsolidityファイルが生成される
@@ -63,7 +62,6 @@ $ truffle compile
 プロジェクトのルートで`npm run solc`を実行
 
 ```
-$ cd ..
 $ npm run solc
 ```
 
