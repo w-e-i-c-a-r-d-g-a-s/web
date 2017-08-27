@@ -273,9 +273,10 @@ filter.watch(function(error) {
 
   // 確定したブロックを参照するため、ある程度遡ったブロックを参照
   const confirmedBlock = web3.eth.getBlock(web3.eth.blockNumber - backwordNum);
-  // console.log("block =>", confirmedBlock.hash, confirmedBlock.transactions.length);
+  console.log("block =>", confirmedBlock.hash, confirmedBlock.transactions.length);
   confirmedBlock.transactions.forEach(function(txId) {
     const tx = web3.eth.getTransaction(txId);
+    console.log('setTransaction', tx.hash);
     setTransaction(tx);
   })
 });
