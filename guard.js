@@ -94,6 +94,22 @@ const setTransactionRecord = (hash, data) => {
     });
 };
 
+const getStructLogs = (txHash) => {
+  return new Promise((resolve, reject) => {
+    web3.currentProvider.sendAsync({
+      method: "debug_traceTransaction",
+      params: [txHash, {}],
+      jsonrpc: "2.0",
+      id: "2"
+    }, (err, res) => {
+      if(err){
+        reject(new Error(e.message));
+      }
+      resolve(res.result.structLogs);
+    });
+  });
+}
+
 // トランザクション登録
 const setTransaction = (tx) => {
   const receipt = web3.eth.getTransactionReceipt(tx.hash);
@@ -101,105 +117,122 @@ const setTransaction = (tx) => {
   const { gas, gasPrice, hash, value, transactionIndex } = tx;
   const { gasUsed } = receipt;
 
+  getStructLogs(tx.hash).then((structLogs) => {
+    let isSuccess = false
+    if (structLogs.length > 0) {
+      const lastStatement = structLogs[structLogs.length - 1];
+      // 成功かどうか
+      isSuccess = lastStatement.error === null && lastStatement.op === 'STOP';
+    }
 
-  // カードかカーマスターかの判定
-  if(cardMasterAddress === tx.to){
-    const txData = {
-      gas,
-      gasPrice: gasPrice.toNumber(),
-      gasUsed,
-      value: value.toNumber(),
-      inputRaw: tx.input,
-      inputMethod: getMethod(tx.input, cardMasterSIG),
-      inputArgs: getArguments(tx.input, cardMasterSIG),
-      timestamp,
-      // データを時系列昇順で並べられるようにする
-      sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex)
-    };
-    console.log('カードマスタに関する実行');
+    // カードかカーマスターかの判定
+    if(cardMasterAddress === tx.to){
+      const txData = {
+        gas,
+        gasPrice: gasPrice.toNumber(),
+        gasUsed,
+        value: value.toNumber(),
+        inputRaw: tx.input,
+        inputMethod: getMethod(tx.input, cardMasterSIG),
+        inputArgs: getArguments(tx.input, cardMasterSIG),
+        timestamp,
+        // データを時系列昇順で並べられるようにする
+        sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex),
+        isSuccess
+      };
+      console.log('カードマスタに関する実行');
 
-    // カードのログデータを作成
-    // カードのアドレスがlogsにあるがこれでいいのか・・・？？
-    const logData = receipt.logs[0].data;
-    const cardAddress = `0x${logData.slice(26)}`;
-    // カードにtxを追加
-    const caRef = database.ref(`cardActivities/${cardAddress}/txs/${hash}`)
-    caRef.set(txData);
-    // ユーザに登録
-    const card = cardContract.at(cardAddress);
-    // カードの所有者を導出
-    const owners = card.getOwnerList().filter((address) => {
-      return +card.balanceOf(address).toString(10) > 0;
-    });
-    const accRef = database.ref().child('accountActivities');
-    const payload = {};
-    owners.forEach((addr) => {
-      payload[`${addr}/txs/${hash}`] = txData;
-    });
-    accRef.update(payload);
-    // 履歴データに書き込み
-    setTransactionRecord(hash, txData);
-    return;
-  }
+      // カードのログデータを作成
+      // カードのアドレスがlogsにあるがこれでいいのか・・・？？
+      const logData = receipt.logs[0].data;
+      const cardAddress = `0x${logData.slice(26)}`;
 
-  // TODO ここに書くとちょっと重いかもしれない。。
-  const cardAddresses = cardMasterInstance.getCardAddresses();
+      // 成功していた場合のみ関連するカードに設定
+      if(isSuccess){
+        database.ref(`cardActivities/${cardAddress}/txs/${hash}`).set(txData);
+      }
 
-  if (cardAddresses.indexOf(tx.to) >= 0) {
-    const inputMethod = getMethod(tx.input, cardSIG);
-    // 売り注文の取り消しは無視する
-    if(inputMethod === 'closeAsk'){
+      // ユーザに登録
+      const card = cardContract.at(cardAddress);
+      // カードの所有者を導出
+      const owners = card.getOwnerList().filter((address) => {
+        return +card.balanceOf(address).toString(10) > 0;
+      });
+      const accRef = database.ref().child('accountActivities');
+      const payload = {};
+      owners.forEach((addr) => {
+        payload[`${addr}/txs/${hash}`] = txData;
+      });
+      accRef.update(payload);
+      // 履歴データに書き込み
+      setTransactionRecord(hash, txData);
       return;
     }
-    console.log('カードに関する');
-    const logData = receipt.logs[0];
-    if(logData){
-      const logs = logData.data.slice(2).match(/.{1,64}/g);
-      const transactionCount = web3.toDecimal(`0x${logs[0]}`);
-      const marketPrice = web3.toDecimal(`0x${logs[1]}`);
-      const diff = web3.toDecimal(`0x${logs[2]}`);
-      const isNegative = web3.toDecimal(`0x${logs[3]}`) === 1;
-      console.log(transactionCount, marketPrice, diff, isNegative);
-      const cpRef = database.ref(`cardPrice/${tx.to}/${transactionCount}`)
-      cpRef.set({
-        transactionCount, marketPrice, diff, isNegative
+
+    // TODO ここに書くとちょっと重いかもしれない。。
+    const cardAddresses = cardMasterInstance.getCardAddresses();
+
+    if (cardAddresses.indexOf(tx.to) >= 0) {
+      const inputMethod = getMethod(tx.input, cardSIG);
+      // 売り注文の取り消しは無視する
+      if(inputMethod === 'closeAsk'){
+        return;
+      }
+      console.log('カードに関する');
+      const logData = receipt.logs[0];
+      if(logData){
+        const logs = logData.data.slice(2).match(/.{1,64}/g);
+        const transactionCount = web3.toDecimal(`0x${logs[0]}`);
+        const marketPrice = web3.toDecimal(`0x${logs[1]}`);
+        const diff = web3.toDecimal(`0x${logs[2]}`);
+        const isNegative = web3.toDecimal(`0x${logs[3]}`) === 1;
+        console.log(transactionCount, marketPrice, diff, isNegative);
+        const cpRef = database.ref(`cardPrice/${tx.to}/${transactionCount}`)
+        cpRef.set({
+          transactionCount, marketPrice, diff, isNegative
+        });
+      }
+      const txData = {
+        gas,
+        gasPrice: gasPrice.toNumber(),
+        gasUsed,
+        value: value.toNumber(),
+        inputRaw: tx.input,
+        inputMethod,
+        inputArgs: getArguments(tx.input, cardSIG),
+        timestamp,
+        sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex),
+        isSuccess
+      };
+      // 関連するユーザ
+      // tx.toを1枚入以上所有しているユーザ
+      const card = cardContract.at(tx.to);
+      // カードの所有者を導出
+      const owners = card.getOwnerList().filter((address) => {
+        return +card.balanceOf(address).toString(10) > 0;
       });
+
+      // from が含まれていない場合
+      if (owners.indexOf(tx.from) === -1) {
+        owners.push(tx.from);
+      }
+
+      const accRef = database.ref().child('accountActivities');
+      const payload = {};
+      owners.forEach((addr) => {
+        payload[`${addr}/txs/${hash}`] = txData;
+      });
+      accRef.update(payload);
+
+      // 成功していた場合のみ関連するカードに設定
+      if(isSuccess){
+        database.ref(`cardActivities/${tx.to}/txs/${hash}`).set(txData);
+      }
+      // 履歴データに書き込み
+      setTransactionRecord(hash, txData);
+      return;
     }
-    const txData = {
-      gas,
-      gasPrice: gasPrice.toNumber(),
-      gasUsed,
-      value: value.toNumber(),
-      inputRaw: tx.input,
-      inputMethod,
-      inputArgs: getArguments(tx.input, cardSIG),
-      timestamp,
-      sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex)
-    };
-    // 関連するユーザ
-    // tx.toを1枚入以上所有しているユーザ
-    const card = cardContract.at(tx.to);
-    // カードの所有者を導出
-    const owners = card.getOwnerList().filter((address) => {
-      return +card.balanceOf(address).toString(10) > 0;
-    });
-    // console.log(owners);
-
-    const accRef = database.ref().child('accountActivities');
-    const payload = {};
-    owners.forEach((addr) => {
-      payload[`${addr}/txs/${hash}`] = txData;
-    });
-    accRef.update(payload);
-
-    // 関連するカードに設定
-    const caRef = database.ref(`cardActivities/${tx.to}/txs/${hash}`)
-    caRef.set(txData);
-    // 履歴データに書き込み
-    setTransactionRecord(hash, txData);
-    return;
-  }
-
+  });
 };
 
 /*

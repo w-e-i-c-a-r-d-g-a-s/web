@@ -11,7 +11,7 @@ detail
             card-owners(card="{card}")
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
-        card-activity(card-address="{opts.cardAddress}")
+        card-activity(card-address="{opts.cardAddress}" activities="{activities}")
         card-bid(
           bid="{bid}"
           refresh-bid-info="{refreshBidInfo}"
@@ -52,13 +52,15 @@ detail
       bidInfo: [],
       askInfo: []
     };
-
+    this.activities = [];
+    this.cardActivityRef = null;
     this.showPasswordModal = false;
     // 自身の保有枚数
     this.numberOfCard = 0;
 
     this.on('mount', async () => {
       this.card = this.web3c.getCard(this.opts.cardAddress);
+      this.cardActivityRef = this.firebase.getCardTransactions(this.opts.cardAddress);
       const cardData = await this.firebase.getCard(this.card.imageHash);
       this.card.imageUrl = cardData.url;
       this.card.tags = cardData.tags;
@@ -69,6 +71,32 @@ detail
       })
       this.numberOfCard = owned ? owned.num : 0;
       this.update();
+
+      // カード履歴
+      this.cardActivityRef.on('child_added', (ss, prevChildKey) => {
+        const v = ss.val();
+        v.key = ss.key;
+        // Transactionデータを取得
+        v.receipt = this.web3c.web3.eth.getTransactionReceipt(v.key);
+        v.card = this.web3c.getCard(v.receipt.to);
+        v.text = this.createActivitiesText(v);
+        v.isDeal = this.isDeal(v.inputMethod);
+        // 初回にまとめて取ってくるとき以外は prevChildKeyがnullになる
+        if(prevChildKey){
+          // 前のデータがあるときは後ろに
+          this.activities.push(v);
+        }else{
+          // 前のデータがないときは先頭に
+          this.activities.unshift(v);
+        }
+        // this.updateDispActivities();
+        // console.table(this.activities);
+        this.update();
+      });
+    });
+
+    this.on('unmount', () => {
+      this.cardActivityRef.off('child_added');
     });
 
     /**
@@ -106,10 +134,10 @@ detail
     /**
      * 選択した売り注文を購入
      * @param {number} quantity 数量
-     * @param {number} wei 1枚あたりの価格(wei)
      * @returns {Promise}
      */
-    acceptAsk(){
+    acceptAsk(quantity){
+      console.log(quantity);
       const selectedAsk = this.card.askInfo[this.askId];
       const gas = 208055;
       const { address } = this.card;
@@ -118,8 +146,9 @@ detail
         try {
           await this.inputUnlock();
           try {
-            const { id, totalPriceEth } = selectedAsk;
-            const tx = this.web3c.acceptAsk(etherAccount, address, id, gas, totalPriceEth);
+            console.log(selectedAsk);
+            const { id, price } = selectedAsk;
+            const tx = this.web3c.acceptAsk(etherAccount, address, id, quantity, gas, price * quantity);
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
@@ -325,4 +354,55 @@ detail
           reject();
         }
       });
+    }
+
+    /**
+     * アクティビティのテキスト生成
+     * @param {object} activityData アクティビティのデータ
+     */
+    createActivitiesText(activityData){
+      const { inputMethod, inputArgs, receipt, card } = activityData;
+      const { from } = receipt;
+
+      // カード発行
+      if(inputMethod === 'addCard'){
+        return `カードが ${inputArgs[1]}枚 発行されました`
+      }
+      // 売り注文を発行
+      if(inputMethod === 'ask'){
+        const eth = this.web3c.weiToEth(inputArgs[1]);
+        return `${eth}ETH で ${inputArgs[0]}枚 の売り注文を作成されました`
+      }
+      // 売り注文から買う
+      if(inputMethod === 'acceptAsk'){
+        const bid = this.web3c.getAsk(card.address, inputArgs[0]);
+        const _price = this.web3c.weiToEth(bid[2].toNumber());
+        return `${_price}ETH で ${inputArgs[1]}枚 販売されました`
+      }
+      // 買い注文から買う
+      if(inputMethod === 'bid'){
+        return `${inputArgs[1]}ETH で ${inputArgs[0]}枚 の買い注文が作成されました`
+      }
+      // 買い注文から売る
+      if(inputMethod === 'acceptBid'){
+        const index = inputArgs[0];
+        const buyOrder = this.web3c.getBid(card.address, index);
+        const price = this.web3c.weiToEth(buyOrder.price().toNumber());
+        return `${price}ETH で ${inputArgs[1]}枚 売却しました`
+      }
+      // 送付
+      if(inputMethod === 'deal'){
+        return `${inputArgs[1]}枚 配布しました`
+      }
+
+      return `${inputMethod} しました`
+    }
+
+    /**
+     * 取引かどうか
+     * @param {string} inputMethod 処理名
+     * @returns {boolean} 取引の場合true
+     */
+    isDeal(inputMethod){
+      return /^(acceptBid|acceptAsk|deal)$/.test(inputMethod);
     }

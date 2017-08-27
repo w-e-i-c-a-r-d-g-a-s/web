@@ -21,6 +21,7 @@ activity
                     p.tile-title(each="{ acts in act.activities }")
                       span.label.label-primary.mx-1(if="{acts.inputMethod === 'addCard'}") カード発行
                       span.label.label-success.mx-1(if="{acts.inputMethod !== 'addCard'}") カード売買
+                      span.label.label-error.mx-1(if="{!acts.isSuccess}") 失敗
                       a(href="#/cards/{acts.card.address}") {acts.card.name}
                       span : {getActivityText(acts)}
           button.btn.mt-2(if="{isShowNext}" onclick="{getNext}" class="{loading: isNextLoading}") next
@@ -151,7 +152,7 @@ activity
         case 'acceptAsk':
           const bid = this.web3c.getAsk(activity.card.address, inputArgs[0]);
           const _price = this.web3c.web3.fromWei(bid[2].toNumber(), 'ether');
-          res = `${_from}${bid[0].slice(0, 8)}...から${_price}ETHで${bid[1].toNumber()}枚 購入しました`
+          res = `${_from}${bid[0].slice(0, 8)}...から${_price}ETHで${inputArgs[1]}枚 購入しました`
           break;
         case 'addCard':
           res = `${inputArgs[1]}枚 発行しました`

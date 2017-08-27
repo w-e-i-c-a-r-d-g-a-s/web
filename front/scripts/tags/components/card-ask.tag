@@ -84,17 +84,29 @@ card-ask
                 button.btn.btn-sm(if="{o.from === parent.user.etherAccount.toLowerCase()}" onclick="{cancelAsk}") 取消
           .columns.col-gapless.mt-2
             .column.col-12(if="{opts.askInfo.length > 0}")
-              button.btn.btn-sm.btn-primary(
-                onclick="{acceptAsk}"
-                disabled="{!_.isNumber(opts.askId)}"
-              ) 選択したものを購入
+              .form-group(class="{ 'has-error': this.errorMsg }")
+                label.form-label(for="input-ask-quantity") 枚数
+                input#input-ask-quantity.form-input.input-sm(
+                  type="number"
+                  ref="askQuantity"
+                  oninput="{checkAcceptAsk}"
+                )
+                p.form-input-hint {errorMsg}
+              .form-group
+                button.btn.btn-sm.btn-primary(
+                  onclick="{acceptAsk}"
+                  disabled="{!enableAcceptAsk}"
+                ) 選択した価格で購入
     .panel-footer
 
   script.
     this.wei = null;
     this.enableAsk = false;
+    this.enableAcceptAsk = false;
+    this.selectedAsk = null;
     this.quantityError = false;
     this.quantityErrorMsg = '';
+    this.errorMsg = '';
 
     /**
      * 枚数を変更
@@ -164,7 +176,6 @@ card-ask
         }
       }
     }
-
     /**
      * 行を選択
      */
@@ -173,13 +184,31 @@ card-ask
         return;
       }
       this.opts.askInfo.map((s, i) => s.selected = i === e.item.i);
+      this.selectedAsk = opts.askInfo[e.item.i];
       this.opts.selectAsk(e);
+      this.checkAcceptAsk();
       this.update();
+    }
+
+    checkAcceptAsk(){
+      const quantity = this.refs.askQuantity.value;
+      // 選択したものより枚数が多い場合
+      if(this.selectedAsk && quantity > this.selectedAsk.quantity){
+        this.errorMsg = '枚数が販売枚数より多いです';
+        this.enableAcceptAsk = false;
+        return;
+      }
+
+      this.enableAcceptAsk = quantity && quantity > 0 && _.isNumber(opts.askId);
+      if(this.enableAcceptAsk){
+        this.errorMsg = '';
+      }
     }
 
     async acceptAsk(){
       try {
-        await this.opts.acceptAsk();
+        const quantity = this.refs.askQuantity.value;
+        await this.opts.acceptAsk(quantity);
         // チェックをリセット
         this.opts.askInfo.map((s, i) => s.selected = false);
         this.opts.selectAsk(null);
@@ -197,3 +226,5 @@ card-ask
         // noop
       }
     }
+
+

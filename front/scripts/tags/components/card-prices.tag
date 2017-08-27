@@ -10,7 +10,7 @@ card-prices
   script.
     this.on('mount', () => {
       window.addEventListener('resize', () => {
-        this.drawChart1();
+        this.drawChart();
       });
     });
 
@@ -22,27 +22,31 @@ card-prices
           const data = [
             ['transactionCount', 'marketPrice', 'diff']
           ];
-          ss.forEach((sss, i) => {
-            const { transactionCount, diff, isNegative, marketPrice } = sss.val();
-            // 最初のdiffは0にする
-            const _diff = transactionCount === 1 ? 0 : isNegative ? -1 * diff : diff;
-            data.push([
-              transactionCount,
-              this.web3c.weiToEth(marketPrice),
-              this.web3c.weiToEth(_diff)
-            ]);
-          });
+          if(ss.exists()){
+            ss.forEach((sss, i) => {
+              const { transactionCount, diff, isNegative, marketPrice } = sss.val();
+              // 最初のdiffは0にする
+              const _diff = transactionCount === 1 ? 0 : isNegative ? -1 * diff : diff;
+              data.push([
+                transactionCount,
+                this.web3c.weiToEth(marketPrice),
+                this.web3c.weiToEth(_diff)
+              ]);
+            });
+          }else{
+            data.push([0, 0, 0]);
+          }
           this.chartData = data;
-          this.drawChart();
+          this._drawChart();
         });
     });
 
-    drawChart(){
+    _drawChart(){
       google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(this.drawChart1);
+      google.charts.setOnLoadCallback(this.drawChart);
     }
 
-    drawChart1(){
+    drawChart(){
       const options = {
         legend: { position: 'bottom' },
         hAxis: { textPosition: 'none' },
@@ -50,7 +54,7 @@ card-prices
         chartArea:{
           top: 10,
           bottom: 30,
-          left:30,
+          left:40,
           right: 10,
           width:"100%",
           height:"100%"

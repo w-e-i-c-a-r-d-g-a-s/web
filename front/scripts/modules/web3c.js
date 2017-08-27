@@ -178,13 +178,13 @@ const web3c = {
    * @param {string} from ユーザアカウント
    * @param {string} cardAddress カードアドレス
    * @param {number} askId 選択したaskのid
+   * @param {number} quantity 枚数
    * @param {number} gas gas
-   * @param {number} ether 総価格(eth)
+   * @param {number} value 価格(wei)
    */
-  acceptAsk: (from, cardAddress, askId, gas, ether = 0) => {
+  acceptAsk: (from, cardAddress, askId, quantity, gas, value) => {
     const card = cardContract.at(cardAddress);
-    const value = web3.toWei(ether, 'ether');
-    return card.acceptAsk(askId, { from, gas, value });
+    return card.acceptAsk(askId, quantity, { from, gas, value });
   },
 
   /**

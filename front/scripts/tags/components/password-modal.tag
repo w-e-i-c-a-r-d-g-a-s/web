@@ -7,7 +7,7 @@ password-modal
         .modal-title 取引を実行
       .modal-body
         .content
-          form(autocomplete="off" role="presentation")
+          form(autocomplete="off" role="presentation" onsubmit="{submit}")
             .form-group
               label.form-label(for='tx-passwd') パスワードを入力してください
               input#tx-passwd.form-input(
