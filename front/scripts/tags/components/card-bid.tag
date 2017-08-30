@@ -196,14 +196,10 @@ card-bid
       }
     }
 
-    cancelBid(e){
+    async cancelBid(e){
       try {
-        this.opts.cancelBid(e.item.i);
-        // チェック、入力をリセット
-        // buyOrderQuantity.value = '';
-        // this.opts.bidInfo.map((s, i) => s.selected = false);
-        // this.opts.selectBid(null);
-        // this.update();
+        await this.opts.cancelBid(e.item.i);
+        this.update();
       } catch(e) {
         console.error(e, 'fail: cancelBid');
       }

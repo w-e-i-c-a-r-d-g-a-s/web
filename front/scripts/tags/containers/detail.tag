@@ -196,6 +196,8 @@ detail
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
+            this.card.askInfo.splice(askId, 1);
+            resolve();
           }catch(e){
             this.opts.obs.trigger('notifyError', { text: e.message });
             reject('err transaction faild');
@@ -303,6 +305,8 @@ detail
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
+            this.card.bidInfo.splice(bidId, 1);
+            resolve();
           }catch(e){
             this.opts.obs.trigger('notifyError', { text: e.message });
             reject('err transaction faild');
