@@ -8,10 +8,9 @@ detail
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
             card-prices(card="{card}")
             card-tags(card="{card}")
-            card-owners(card="{card}")
+            // card-owners(card="{card}")
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
-        card-activity(card-address="{opts.cardAddress}" activities="{activities}")
         card-bid(
           bid="{bid}"
           refresh-bid-info="{refreshBidInfo}"
@@ -32,11 +31,8 @@ detail
           ask-id="{askId}"
           number-of-card="{numberOfCard}"
         )
-        card-deal(
-          deal="{deal}"
-          total-supply="{card.totalSupply}"
-          number-of-card="{numberOfCard}"
-        )
+        // card-deal(deal="{deal}" total-supply="{card.totalSupply}" number-of-card="{numberOfCard}")
+        card-activity(card-address="{opts.cardAddress}" activities="{activities}")
     password-modal(
       unlock="{unlock}"
       show="{showPasswordModal}"

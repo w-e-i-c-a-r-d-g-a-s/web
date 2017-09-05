@@ -57,11 +57,8 @@ card-ask
             tr
               th
               th
-              th 売却者
               th 枚数
               th 一枚あたりの価格
-              th 総価格
-              th
             tr(each="{o, i in opts.askInfo}" onclick="{selectRow}")
               td
                 small.bg-success.text-light.p-1.rounded(show="{i === 0}") 最安値!
@@ -77,11 +74,7 @@ card-ask
               td
                 .tile.tile-centered
                   .tile-content.inline-block.text-ellipsis.addr {o.from}
-              td {o.quantity}
               td.tooltip(data-tooltip="{o.price} Wei") {o.priceEth} Ether
-              td.tooltip(data-tooltip="{o.totalPrice} Wei") {o.totalPriceEth} Ether
-              td
-                button.btn.btn-sm(if="{o.from === parent.user.etherAccount.toLowerCase()}" onclick="{cancelAsk}") 取消
           .columns.col-gapless.mt-2
             .column.col-12(if="{opts.askInfo.length > 0}")
               .form-group(class="{ 'has-error': this.errorMsg }")

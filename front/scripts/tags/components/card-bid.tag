@@ -42,10 +42,7 @@ card-bid
                     )
                     span.input-group-addon.addon-sm Wei
             .panel-footer
-              button.btn.btn-primary.btn-sm(
-                onclick="{bid}"
-                disabled="{!enableBid}"
-              ) 買う
+              button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 買う
 
         .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
           h5.inline-block.text-normal 買い注文一覧
@@ -57,11 +54,8 @@ card-bid
             tr
               th
               th
-              th 購入者
               th 枚数
               th 一枚あたりの価格
-              th 総価格
-              th
             tr(each="{o, i in opts.bidInfo}" onclick="{selectBuyOrderRow}")
               td
                 small.bg-success.text-light.p-1.rounded(show="{i === 0}") 最高値!
@@ -74,14 +68,8 @@ card-bid
                   onchange="{parent.opts.selectSell}"
                   if="{o.buyer !== parent.user.etherAccount.toLowerCase()}"
                 )
-              td
-                .tile.tile-centered
-                  .tile-content.inline-block.text-ellipsis.addr {o.buyer}
               td {o.quantity}
               td.tooltip(data-tooltip="{o.price} Wei") {o.priceEth} Ether
-              td.tooltip(data-tooltip="{o.totalPrice} Wei") {o.totalPriceEth} Ether
-              td
-                button.btn.btn-sm(if="{o.buyer === parent.user.etherAccount.toLowerCase()}" onclick="{cancelBid}") 取消
 
           .columns.col-gapless(if="{opts.bidInfo.length > 0}")
             .column.col-12
