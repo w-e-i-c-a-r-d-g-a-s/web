@@ -16,7 +16,10 @@ mycards
       this.update();
       this.myCards.forEach(async (c) => {
         const cardData = await this.firebase.getCard(c.imageHash);
+        const price = await this.firebase.getCardPrice(c.address);
+        const key = Object.keys(price)[0];
         c.imageUrl = cardData.url;
+        c.marketPrice = price[key].marketPrice;
         this.update();
       });
     });

@@ -1,5 +1,6 @@
 export const EVENT = {
-  UPDATE_MENU: 'updateMenu'
+  UPDATE_MENU: 'updateMenu',
+  UPDATE_ETH_PRICE: 'updateEthPrice'
 };
 
 export const MENUS = {

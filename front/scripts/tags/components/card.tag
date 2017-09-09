@@ -11,6 +11,11 @@ card
       .columns
         .column.col-4 発行枚数
         .column.col-8 {opts.card.totalSupply}
+      .columns
+        .column.col-4 最安値
+        .column.col-8
+          price(val="{opts.card.currentMarketPrice}" unit="ether")
+
   script.
     goDetail(){
       if(this.opts.single){

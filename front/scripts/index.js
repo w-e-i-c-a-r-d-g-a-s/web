@@ -25,6 +25,7 @@ import './tags/containers/tagpage.tag';
 import './tags/containers/toast-box.tag';
 import './tags/containers/notfound.tag';
 import './tags/components/password-modal.tag';
+import './tags/components/price.tag';
 
 // modules
 import firebase from './modules/firebase';
@@ -45,7 +46,7 @@ const setEtherPriceAPI = () => {
 
   const updateEthPrice = () => {
     request('GET', ethAPI).then((data) => {
-      obs.trigger('updateEthPrice', {
+      obs.trigger(EVENT.UPDATE_ETH_PRICE, {
         etherJPY: data.body.JPY
       });
     }).catch(() => {
@@ -83,6 +84,7 @@ const setEtherPriceAPI = () => {
   riot.mixin({user});
   riot.mixin({web3c});
   riot.mixin(firebase);
+  riot.mixin({obs});
   riot.mount('navbar', { obs });
   riot.mount('toast-box', { obs });
 

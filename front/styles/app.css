@@ -85,11 +85,6 @@
     }
   }
 
-  & .column {
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
-  }
-
   & .image {
     width: 100%;
     height: var(--card-width);
@@ -98,6 +93,7 @@
   & .desc {
     word-wrap: break-word;
   }
+
 }
 
 .toasts {

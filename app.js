@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const cookieSession = require('cookie-session')
+const _ = require('lodash');
 const admin = require("firebase-admin");
 const index = require('./routes/index');
 const login = require('./routes/login');
@@ -68,7 +69,7 @@ app.use('/newWallet', newWallet);
 
 // 開発用ダミーetherprice
 app.get('/dummyprice', (req, res) => {
-  res.json({JPY: 30000.00})
+  res.json({JPY: _.random(28000, 40000, true).toFixed(5)})
 });
 
 // ログアウト

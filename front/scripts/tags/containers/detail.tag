@@ -4,7 +4,8 @@ detail
       .column.col-3.col-xs-12.col-sm-12.col-md-12.col-lg-4.col-xl-3
         .columns
           .column.col-12.col-xs-12.col-sm-6.col-md-5.col-lg-12.col-xl-12.my-2
-            card(card="{card}" single="{true}")
+            card(card="{card}" single="{true}" )
+            button.btn.btn-primary.btn-block.mt-2 最安値で購入する
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
             card-prices(card="{card}")
             card-tags(card="{card}")
@@ -55,9 +56,10 @@ detail
     this.numberOfCard = 0;
 
     this.on('mount', async () => {
-      this.cardActivityRef = this.firebase.getCardTransactions(this.opts.cardAddress);
+      const { cardAddress } = this.opts;
+      this.cardActivityRef = this.firebase.getCardTransactions(cardAddress);
 
-      this.card = this.web3c.getCard(this.opts.cardAddress);
+      this.card = this.web3c.getCard(cardAddress);
       const cardData = await this.firebase.getCard(this.card.imageHash);
       this.card.imageUrl = cardData.url;
       this.card.tags = cardData.tags;

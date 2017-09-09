@@ -17,7 +17,7 @@ home
         const cardData = await this.firebase.getCard(c.imageHash);
         if(cardData){
           c.imageUrl = cardData.url;
-          this.update();
         }
+        this.update();
       });
     });

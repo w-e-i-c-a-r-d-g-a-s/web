@@ -3,7 +3,6 @@ card-prices
     .panel-header
       .panel-title.h5 Card Prices
     .panel-body
-      span.h6 {opts.card.currentMarketPrice} eth
       #chart(style="width: 100%; height: 200px")
     .panel-footer
 

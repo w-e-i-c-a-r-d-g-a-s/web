@@ -106,7 +106,8 @@ const web3c = {
         name: web3.toAscii(card.name()),
         imageHash: web3.toAscii(card.imageHash()),
         author: card.author(),
-        totalSupply: card.totalSupply().toString(10)
+        totalSupply: card.totalSupply().toString(10),
+        currentMarketPrice: web3.fromWei(card.currentMarketPrice().toNumber(), 'ether')
       }
     });
     return account ? cards.filter((c) => {

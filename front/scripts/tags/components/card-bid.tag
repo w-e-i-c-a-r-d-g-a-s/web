@@ -2,7 +2,7 @@ card-bid
   .panel.mt-2
     .panel-header
       .panel-title
-        | カードを買いたい
+        | カードを買う
         button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshBidInfo}")
           i.icon.icon-refresh
     .panel-body
@@ -45,7 +45,7 @@ card-bid
               button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 買う
 
         .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
-          h5.inline-block.text-normal 買い注文一覧
+          h5.inline-block.text-normal 出品中のカード
           .empty(if="{opts.bidInfo.length === 0}")
             .empty-icon
               i.icon.icon-message(style="font-size: 3rem")
