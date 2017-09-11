@@ -14,7 +14,7 @@ card
       .columns
         .column.col-4 最安値
         .column.col-8
-          price(val="{opts.card.currentMarketPrice}" unit="ether")
+          price(val="{opts.card.currentMarketPrice}" unit="ether" linebreak="true")
 
   script.
     goDetail(){

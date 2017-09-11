@@ -3,8 +3,8 @@
 // toを指定している場合強制的にその単位になる
 price
   span
-    | {etherPrice}&nbsp;{displayUnit}
-    br
+    | {etherPrice}&nbsp;{displayUnit}&nbsp;
+    br(if="{opts.linebreak}")
     | (約&yen;{jpy})
 
   script.
@@ -15,6 +15,7 @@ price
 
     this.obs.on(EVENT.UPDATE_ETH_PRICE, (({ etherJPY }) => {
       this.etherJPY = etherJPY;
+      this.updateJPY();
       this.update();
     }));
 
@@ -37,6 +38,8 @@ price
     });
 
     updateJPY(){
-      const jpy = (this.etherPrice * this.etherJPY).toFixed(0);
-      this.jpy = String(jpy).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+      if(this.etherJPY){
+        const jpy = (this.etherPrice * this.etherJPY).toFixed(0);
+        this.jpy = String(jpy).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+      }
     }

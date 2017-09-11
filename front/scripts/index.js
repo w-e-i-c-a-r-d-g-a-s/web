@@ -9,8 +9,11 @@ import './tags/components/card.tag';
 import './tags/components/navbar.tag';
 import './tags/components/card-owners.tag';
 import './tags/components/card-bid.tag';
+import './tags/components/card-bid-form.tag';
 import './tags/components/card-deal.tag';
 import './tags/components/card-ask.tag';
+import './tags/components/card-ask-form.tag';
+import './tags/components/card-accept-ask.tag';
 import './tags/components/card-activity.tag';
 import './tags/components/card-tags.tag';
 import './tags/components/card-prices.tag';
@@ -49,8 +52,8 @@ const setEtherPriceAPI = () => {
       obs.trigger(EVENT.UPDATE_ETH_PRICE, {
         etherJPY: data.body.JPY
       });
-    }).catch(() => {
-      console.error('cant get etherAPI');
+    }).catch((e) => {
+      console.error('cant get etherAPI', e);
     })
   };
 
@@ -79,7 +82,6 @@ const setEtherPriceAPI = () => {
   user.wei = web3c.web3.eth.getBalance(_user.etherAccount).toString(10);
   user.eth = web3c.web3.fromWei(user.wei, "ether");
 
-  setEtherPriceAPI();
 
   riot.mixin({user});
   riot.mixin({web3c});
@@ -132,6 +134,9 @@ const setEtherPriceAPI = () => {
     riot.mount('app', 'notfound');
   });
 
+  setTimeout(() => {
+    setEtherPriceAPI();
+  }, 1000);
   route.start(true);
 })();
 

@@ -7,44 +7,7 @@ card-bid
           i.icon.icon-refresh
     .panel-body
       .columns
-        .column.col-3.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-4
-          .panel
-            .panel-header
-              .panel-title 買い注文
-            .panel-body
-              form(autocomplete="off" role="presentation")
-                .form-group
-                  label.form-label(for="input-bid-quantity") 枚数
-                  input#input-bid-quantity.form-input.input-sm(
-                    type="number"
-                    ref="bidQuantity"
-                    oninput="{changeBidQuantity}"
-                    class="{'is-error': quantityError}"
-                  )
-                  p.form-input-hint {quantityErrorMsg}
-                .form-group
-                  label.form-label(for="input-bid-price") 一枚あたりの価格
-                  .input-group
-                    input#input-bid-price.form-input.input-sm(
-                      type="text"
-                      ref="bidPrice"
-                      oninput="{changeBidPrice}"
-                    )
-                    span.input-group-addon.addon-sm Ether
-                  p.form-input-hint 現状整数のみ入力可
-                  label.form-label
-                  .input-group
-                    input.form-input.input-sm(
-                      type="text"
-                      disabled
-                      ref="bidWei"
-                      value="{wei && wei.toFormat()}"
-                    )
-                    span.input-group-addon.addon-sm Wei
-            .panel-footer
-              button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 買う
-
-        .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-12.col-xl-8
+        .column.col-12
           h5.inline-block.text-normal 出品中のカード
           .empty(if="{opts.bidInfo.length === 0}")
             .empty-icon
@@ -54,11 +17,11 @@ card-bid
             tr
               th
               th
-              th 枚数
-              th 一枚あたりの価格
+              th 販売価格
+              th 販売枚数
             tr(each="{o, i in opts.bidInfo}" onclick="{selectBuyOrderRow}")
               td
-                small.bg-success.text-light.p-1.rounded(show="{i === 0}") 最高値!
+                small.bg-success.text-light.p-1.rounded(show="{i === 0}") 最安値!
               td
                 input(
                   type="radio"
@@ -71,22 +34,37 @@ card-bid
               td {o.quantity}
               td.tooltip(data-tooltip="{o.price} Wei") {o.priceEth} Ether
 
-          .columns.col-gapless(if="{opts.bidInfo.length > 0}")
-            .column.col-12
+          .columns(if="{opts.bidInfo.length > 0}")
+            .column.col-1
               .form-group
-                label.form-label(for="input-buyorder-quantity") 枚数
+                label.form-label.label-sm(for="input-buyorder-quantity") 枚数
+            .column.col-10
+              .form-group
                 input#input-buyorder-quantity.form-input.input-sm(
                   type="number" placeholder="" ref="buyOrderQuantity"
                 )
+            .column.col-1
               .form-group
                 button.btn.btn-sm.btn-primary(
                   onclick="{acceptBid}"
                   disabled="{!_.isNumber(opts.bidId)}"
-                ) 選択した価格で売却
+                ) 購入する
+
     .panel-footer
+  card-bid-form(
+    change-bid-quantity="{changeBidQuantity}"
+    quantity-error="{quantityError}"
+    quantity-error-msg="{quantityErrorMsg}"
+    change-bid-price="{changeBidPrice}"
+    jpy="{jpy}"
+    bid="{bid}"
+    enable-bid="{enableBid}"
+  )
 
   script.
+    this.bidQuantity = 0;
     this.wei = null;
+    this.jpy = null;
     this.enableBid = false;
     this.quantityError = false;
     this.quantityErrorMsg = '';
@@ -94,7 +72,8 @@ card-bid
     /**
      * 枚数を変更
      */
-    changeBidQuantity(){
+    changeBidQuantity(e){
+      this.bidQuantity = e.target.value;
       this.checkBidForm();
     }
 
@@ -103,11 +82,13 @@ card-bid
      */
     changeBidPrice(e){
       const _eth = _.toNumber(e.target.value);
-      if(_.isNumber(_eth) && !_.isNaN(_eth)){
+      if(_.isNumber(_eth) && !_.isNaN(_eth) && _eth > 0){
         const eth = this.web3c.web3.toBigNumber(_eth);
         this.wei = this.web3c.web3.toWei(eth, 'ether');
+        this.jpy = (this.opts.etherJpy * eth.toNumber()).toFixed(2);
       } else {
         this.wei = null;
+        this.jpy = null;
       }
       this.checkBidForm();
     }
@@ -116,13 +97,13 @@ card-bid
      * 入力値チェック
      */
     checkBidForm(){
-      if(this.refs.bidQuantity.value === ''){
+      if(this.bidQuantity === ''){
         this.quantityError = false;
         this.quantityErrorMsg = ''
         this.enableBid = false;
         return;
       }
-      const qt = _.toNumber(this.refs.bidQuantity.value);
+      const qt = _.toNumber(this.bidQuantity);
       const isValidQt = _.isNumber(qt) && _.isInteger(qt) && qt > 0;
       if(!isValidQt || qt === 0){
         this.quantityError = true;
@@ -149,7 +130,6 @@ card-bid
         return;
       }
       this.opts.bidInfo.map((s, i) => s.selected = i === e.item.i);
-      this.opts.selectBid(e);
       this.update();
     }
 
@@ -176,7 +156,6 @@ card-bid
           // チェック、入力をリセット
           buyOrderQuantity.value = '';
           this.opts.bidInfo.map((s, i) => s.selected = false);
-          this.opts.selectBid(null);
           this.update();
         } catch(e) {
           return;

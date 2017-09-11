@@ -12,25 +12,24 @@ detail
             // card-owners(card="{card}")
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
-        card-bid(
-          bid="{bid}"
-          refresh-bid-info="{refreshBidInfo}"
-          bid-info="{card.bidInfo}"
-          select-bid="{selectBid}"
-          bid-id="{bidId}"
-          accept-bid="{acceptBid}"
-          cancel-bid="{cancelBid}"
-          total-supply="{card.totalSupply}"
-        )
         card-ask(
+          ether-jpy="{etherJPY}"
           accept-ask="{acceptAsk}"
           ask="{ask}"
           refresh-ask-info="{refreshAskInfo}"
           ask-info="{card.askInfo}"
-          select-ask="{selectAsk}"
           cancel-ask="{cancelAsk}"
           ask-id="{askId}"
           number-of-card="{numberOfCard}"
+        )
+        card-bid(
+          ether-jpy="{etherJPY}"
+          bid="{bid}"
+          refresh-bid-info="{refreshBidInfo}"
+          bid-info="{card.bidInfo}"
+          accept-bid="{acceptBid}"
+          cancel-bid="{cancelBid}"
+          total-supply="{card.totalSupply}"
         )
         // card-deal(deal="{deal}" total-supply="{card.totalSupply}" number-of-card="{numberOfCard}")
         card-activity(card-address="{opts.cardAddress}" activities="{activities}")
@@ -43,8 +42,6 @@ detail
   script.
     import Deferred from 'es6-deferred';
     import { assign, throttle } from 'lodash';
-    this.bidId = null;
-    this.askId = null;
     this.card = {
       bidInfo: [],
       askInfo: []
@@ -54,6 +51,11 @@ detail
     this.showPasswordModal = false;
     // 自身の保有枚数
     this.numberOfCard = 0;
+
+    opts.obs.on('updateEthPrice', (({ etherJPY }) => {
+      this.etherJPY = etherJPY;
+      this.update();
+    }));
 
     this.on('mount', async () => {
       const { cardAddress } = this.opts;
@@ -150,9 +152,8 @@ detail
      * @param {number} quantity 数量
      * @returns {Promise}
      */
-    acceptAsk(quantity){
-      console.log(quantity);
-      const selectedAsk = this.card.askInfo[this.askId];
+    acceptAsk(selectedAsk, quantity){
+      console.log(selectedAsk, quantity);
       const gas = 208055;
       const { address } = this.card;
       const { etherAccount } = this.user;
@@ -204,16 +205,6 @@ detail
           reject('canceled');
         }
       });
-    }
-
-    selectBid(e){
-      this.bidId = e ? e.item.i : null;
-      this.update();
-    }
-
-    selectAsk(e){
-      this.askId =  e ? e.item.i : null;
-      this.update();
     }
 
     refreshAskInfo(){
