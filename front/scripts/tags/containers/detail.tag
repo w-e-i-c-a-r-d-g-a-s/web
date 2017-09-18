@@ -22,13 +22,24 @@ detail
           ask-id="{askId}"
           number-of-card="{numberOfCard}"
         )
+        card-ask-form(
+          number-of-card="{numberOfCard}"
+          ether-jpy="{etherJPY}"
+          ask="{ask}"
+        )
         card-bid(
           ether-jpy="{etherJPY}"
-          bid="{bid}"
           refresh-bid-info="{refreshBidInfo}"
           bid-info="{card.bidInfo}"
           accept-bid="{acceptBid}"
           cancel-bid="{cancelBid}"
+        )
+        card-bid-form(
+          bid="{bid}"
+          ether-jpy="{etherJPY}"
+          change-bid-quantity="{changeBidQuantity}"
+          quantity-error="{quantityError}"
+          quantity-error-msg="{quantityErrorMsg}"
           total-supply="{card.totalSupply}"
         )
         // card-deal(deal="{deal}" total-supply="{card.totalSupply}" number-of-card="{numberOfCard}")
@@ -39,6 +50,7 @@ detail
       deferred="{deferred}"
       obs="{opts.obs}"
     )
+
   script.
     import Deferred from 'es6-deferred';
     import { assign, throttle } from 'lodash';
@@ -94,9 +106,9 @@ detail
           // 前のデータがないときは先頭に
           this.activities.unshift(v);
         }
+        this.update();
         // オーナ情報、ask, bidを付け直す
         setUpdateData();
-        this.update();
       });
     });
 
@@ -113,6 +125,7 @@ detail
       this.card.askInfo = newCardData.askInfo;
       this.card.currentMarketPrice = newCardData.currentMarketPrice;
       this.card.owners = newCardData.owners;
+      this.update();
     }
 
     /**
@@ -147,13 +160,17 @@ detail
       });
     }
 
+    requestAsk(){
+
+    }
+
     /**
      * 選択した売り注文を購入
      * @param {number} quantity 数量
      * @returns {Promise}
      */
     acceptAsk(selectedAsk, quantity){
-      console.log(selectedAsk, quantity);
+      // console.log(selectedAsk, quantity);
       const gas = 208055;
       const { address } = this.card;
       const { etherAccount } = this.user;
