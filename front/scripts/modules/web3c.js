@@ -163,7 +163,7 @@ const web3c = {
 
   /**
    * 売り注文(ask)を発行
-   * @param {枚数} quantity 枚数
+   * @param {number} quantity 枚数
    * @param {number} price 金額
    * @param {string} cardAddress カードアドレス
    * @param {string} from 実行ユーザアカウント
