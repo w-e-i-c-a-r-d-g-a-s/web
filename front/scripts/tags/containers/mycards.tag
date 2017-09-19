@@ -1,6 +1,6 @@
 mycards
   .page.container
-    .columns
+    .columns.mt-2
       .column.col-12(if="{myCards.length > 0}")
         card(each="{card in myCards}" card="{card}" go-detail="{opts.goDetail}")
       .column.col-12(if="{myCards.length === 0}")
