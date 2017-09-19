@@ -46,6 +46,7 @@ admin
         db.ref('cards').remove();
         db.ref('tags').remove();
         db.ref('transactions').remove();
+        db.ref('cardPrice').remove();
       }
     }
 
