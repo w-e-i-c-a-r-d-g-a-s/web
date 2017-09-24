@@ -40,7 +40,7 @@ card-bid-form
                 span.input-group-addon.addon-sm 円
           .column.col-1
             label.form-label &nbsp;
-            button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 売却する
+            button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 購入する
   script.
     this.bidQuantity = 0;
     this.wei = null;
@@ -102,7 +102,8 @@ card-bid-form
       this.enableBid = isValidQt && this.wei;
     }
 
-    async bid(){
+    async bid(e){
+      e.preventDefault();
       const { bidQuantity, bidPrice, bidWei } = this.refs;
       if(bidQuantity.value && this.wei){
         try {

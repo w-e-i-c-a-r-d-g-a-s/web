@@ -37,7 +37,7 @@ card-ask
             if="{opts.askInfo.length > 0}"
             accept="{acceptAsk}"
             ether-jpy="{opts.etherJpy}"
-            on-input-num="{checkAcceptAsk}"
+            on-input-num="{onChangeeAcceptAskQt}"
             enable-accept-ask="{enableAcceptAsk}"
             error-msg="{errorMsg}"
             price="{this.selectedAskPriceEth}"
@@ -58,15 +58,22 @@ card-ask
       this.opts.askInfo.map((s, i) => s.selected = i === e.item.i);
       const selectedAsk = opts.askInfo[e.item.i]
       this.selectedAskPriceEth = selectedAsk.priceEth;
-      this.checkAcceptAsk(this.askQuantity);
+      this.checkAcceptAsk();
       this.update();
     }
 
-    checkAcceptAsk(inputQt = 0){
-      if(!inputQt){
+    onChangeeAcceptAskQt(e){
+      const qt = _.toNumber(e.target.value);
+      this.askQuantity = qt;
+      if(!qt){
+        this.errorMsg = '';
+        this.enableAcceptAsk = false;
         return;
       }
-      this.askQuantity = inputQt;
+      this.checkAcceptAsk();
+    }
+
+    checkAcceptAsk(){
       for(let i = 0, len = opts.askInfo.length; i < len; i++){
         const ask = opts.askInfo[i];
         // 同一の金額があるかどうか
@@ -92,6 +99,7 @@ card-ask
 
     async acceptAsk(){
       try {
+        console.log(this.selectedAsk, this.askQuantity);
         await this.opts.acceptAsk(this.selectedAsk, this.askQuantity);
         this.update();
       } catch (e) {

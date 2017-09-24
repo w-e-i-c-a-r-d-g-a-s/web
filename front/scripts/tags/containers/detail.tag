@@ -170,7 +170,6 @@ detail
      * @returns {Promise}
      */
     acceptAsk(selectedAsk, quantity){
-      // console.log(selectedAsk, quantity);
       const gas = 208055;
       const { address } = this.card;
       const { etherAccount } = this.user;
@@ -178,8 +177,8 @@ detail
         try {
           await this.inputUnlock();
           try {
-            const { id, price } = selectedAsk;
-            const tx = this.web3c.acceptAsk(etherAccount, address, id, quantity, gas, price * quantity);
+            const { price } = selectedAsk;
+            const tx = this.web3c.acceptAsk(etherAccount, address, price, quantity, gas);
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
@@ -400,9 +399,9 @@ detail
       }
       // 売り注文から買う
       if(inputMethod === 'acceptAsk'){
-        const bid = this.web3c.getAsk(card.address, inputArgs[0]);
-        const _price = this.web3c.weiToEth(bid[2].toNumber());
-        return `${_price}ETH で ${inputArgs[1]}枚 販売されました`
+        const [ wei, num ] = inputArgs;
+        const _price = this.web3c.weiToEth(wei);
+        return `${_price}ETH で ${num}枚 販売されました`
       }
       // 買い注文から買う
       if(inputMethod === 'bid'){

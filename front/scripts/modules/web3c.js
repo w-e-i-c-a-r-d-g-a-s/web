@@ -178,14 +178,13 @@ const web3c = {
    * 売り注文を購入
    * @param {string} from ユーザアカウント
    * @param {string} cardAddress カードアドレス
-   * @param {number} askId 選択したaskのid
+   * @param {number} price 選択したaskの金額
    * @param {number} quantity 枚数
    * @param {number} gas gas
-   * @param {number} value 価格(wei)
    */
-  acceptAsk: (from, cardAddress, askId, quantity, gas, value) => {
+  acceptAsk: (from, cardAddress, price, quantity, gas) => {
     const card = cardContract.at(cardAddress);
-    return card.acceptAsk(askId, quantity, { from, gas, value });
+    return card.acceptAsk(price, quantity, { from, gas, value: price * quantity });
   },
 
   /**
@@ -207,33 +206,27 @@ const web3c = {
 
   getAskInfo(card){
     const askInfo = [];
-    for (let i = 0, len = card.getAskInfosCount().toNumber(); i < len; i++) {
-      const [from, quantity, price, active] = card.askInfos(i);
-      if(!active){
-        continue;
+    const askInfoPrices = card.getAskInfoPrices();
+    for (let i = 0, len = card.getAskInfoPricesCount().toNumber(); i < len; i++) {
+      const priceKey = askInfoPrices[i];
+      const [from, quantity] = card.readAskInfo(priceKey, 0);
+      const price = web3.toDecimal(priceKey);
+      const idx = _.findIndex(askInfo, ['price', price]);
+      if(idx !== -1){
+        askInfo[idx].quantity += quantity.toNumber();
+      } else {
+        askInfo.push({
+          id: i,
+          from,
+          quantity: quantity.toNumber(),
+          price,
+          priceEth: web3.fromWei(price, 'ether'),
+          totalPrice: quantity.mul(price).toNumber(),
+          totalPriceEth: quantity.mul(web3.fromWei(price, 'ether')).toNumber()
+        });
       }
-      askInfo.push({
-        id: i,
-        from,
-        quantity: quantity.toNumber(),
-        price: price.toNumber(),
-        priceEth: web3.fromWei(price, 'ether').toNumber(),
-        totalPrice: quantity.mul(price).toNumber(),
-        totalPriceEth: quantity.mul(web3.fromWei(price, 'ether')).toNumber(),
-        active
-      });
     }
     return _.sortBy(askInfo, ['price', 'totalPrice']);
-  },
-
-  /**
-   * 売り注文(ask)情報を取得
-   * @param {string} cardAddress カードアドレス
-   * @param {number} askIndex 売り注文インデックス
-   */
-  getAsk(cardAddress, askIndex){
-    const card = cardContract.at(cardAddress);
-    return card.askInfos(askIndex);
   },
 
   bid(from, cardAddress, quantity, price, gas){
