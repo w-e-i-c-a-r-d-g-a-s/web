@@ -5,7 +5,10 @@ detail
         .columns
           .column.col-12.col-xs-12.col-sm-6.col-md-5.col-lg-12.col-xl-12.my-2
             card(card="{card}" single="{true}" )
-            button.btn.btn-primary.btn-block.mt-2(onclick="{buyLowestPrice}") 最安値で購入する
+            button.btn.btn-primary.btn-block.mt-2(
+              disabled="{card.askInfo.length < 1}"
+              onclick="{buyLowestPrice}"
+            ) 最安値で購入する
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
             card-prices(card="{card}")
             card-tags(card="{card}")
