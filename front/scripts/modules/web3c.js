@@ -212,6 +212,9 @@ const web3c = {
     for (let i = 0, len = card.getAskInfoPricesCount().toNumber(); i < len; i++) {
       const priceKey = askInfoPrices[i];
       const [from, quantity] = card.readAskInfo(priceKey, 0);
+      if(quantity.toNumber() < 1){
+        continue;
+      }
       const price = web3.toDecimal(priceKey);
       const idx = _.findIndex(askInfo, ['price', price]);
       if(idx !== -1){
@@ -272,14 +275,19 @@ const web3c = {
    */
   getBidInfos(card){
     const bidInfos = [];
-
-    card.getBidInfoPrices().forEach((priceKey, j) => {
+    const prices = card.getBidInfoPrices();
+    for (var j = 0, len = prices.length; j < len; j++) {
+      const priceKey = prices[j];
       const bidInfoId = card.bidInfos(priceKey);
       const bidInfo = bidInfoContract.at(bidInfoId);
       let _qt = 0;
       for (let i = 0, len = bidInfo.getBidInfoPropsCount().toNumber(); i < len; i++) {
         const [buyer, quantity] = bidInfo.bidInfoProps(i);
         _qt += quantity.toNumber();
+      }
+
+      if(_qt < 1){
+        continue;
       }
 
       const price = bidInfo.price().toNumber();
@@ -289,7 +297,7 @@ const web3c = {
         priceEth: web3.fromWei(price, 'ether'),
         quantity: _qt
       });
-    });
+    }
 
     return _.orderBy(bidInfos, ['price'], ['desc']);
   },
