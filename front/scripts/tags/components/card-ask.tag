@@ -19,7 +19,7 @@ card-ask
               th
               th 販売価格
               th.text-right 枚数
-            tr(each="{o, i in opts.askInfo}" onclick="{selectRow}")
+            tr(each="{o, i in opts.askInfo}" onclick="{onClickRow}")
               td
                 input(
                   type="radio"
@@ -42,6 +42,7 @@ card-ask
             error-msg="{errorMsg}"
             price="{this.selectedAskPriceEth}"
             button-text="購入する"
+            ref="cardAcceptAsk"
           )
     .panel-footer
 
@@ -52,15 +53,29 @@ card-ask
     this.askQuantity = 0;
 
     /**
+     * 行をクリック
+     */
+    onClickRow(e){
+      this.selectRow(e.item.i);
+    }
+
+    /**
      * 行を選択
      */
-    selectRow(e){
-      this.opts.askInfo.map((s, i) => s.selected = i === e.item.i);
-      const selectedAsk = opts.askInfo[e.item.i]
+    selectRow(idx){
+      this.opts.askInfo.map((s, i) => s.selected = i === idx);
+      const selectedAsk = opts.askInfo[idx];
       this.selectedAskPrice = selectedAsk.price;
       this.selectedAskPriceEth = selectedAsk.priceEth;
       this.checkAcceptAsk();
       this.update();
+    }
+
+    /**
+     * 数量にfocusを入れる
+     */
+    focusQt(){
+      this.refs.cardAcceptAsk.focusQt();
     }
 
     onChangeeAcceptAskQt(e){

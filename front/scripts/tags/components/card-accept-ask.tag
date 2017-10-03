@@ -46,3 +46,10 @@ card-accept-ask
     this.on('update', () => {
       this.jpy = (this.opts.etherJpy * opts.price).toFixed(2);
     });
+
+    /**
+     * 数量にfocusを入れる
+     */
+    focusQt(){
+      this.refs.askQuantity.focus();
+    }

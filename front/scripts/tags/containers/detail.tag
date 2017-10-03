@@ -5,7 +5,7 @@ detail
         .columns
           .column.col-12.col-xs-12.col-sm-6.col-md-5.col-lg-12.col-xl-12.my-2
             card(card="{card}" single="{true}" )
-            button.btn.btn-primary.btn-block.mt-2 最安値で購入する
+            button.btn.btn-primary.btn-block.mt-2(onclick="{buyLowestPrice}") 最安値で購入する
           .column.col-12.col-xs-12.col-sm-6.col-md-7.col-lg-12.col-xl-12
             card-prices(card="{card}")
             card-tags(card="{card}")
@@ -13,6 +13,7 @@ detail
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
         card-ask(
+          ref="cardAsk"
           ether-jpy="{etherJPY}"
           accept-ask="{acceptAsk}"
           ask="{ask}"
@@ -156,8 +157,15 @@ detail
       });
     }
 
-    requestAsk(){
-
+    /**
+     * 「最安値で購入」ボタンを押下
+     */
+    buyLowestPrice(e){
+      e.preventDefault();
+      // 最安値の行を選択
+      this.refs.cardAsk.selectRow(0);
+      this.refs.cardAsk.focusQt();
+      this.update();
     }
 
     /**
