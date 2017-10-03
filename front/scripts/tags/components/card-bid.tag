@@ -58,7 +58,7 @@ card-bid
     selectRow(e){
       this.opts.bidInfo.map((s, i) => s.selected = i === e.item.i);
       const selectedBid = opts.bidInfo[e.item.i];
-      console.log(selectedBid);
+      this.selectedBidPrice = selectedBid.price;
       this.selectedBidPriceEth = selectedBid.priceEth;
       this.checkAcceptBid(this.bidQuantity);
       this.update();
@@ -100,17 +100,14 @@ card-bid
     }
 
     async acceptBid(){
-      const { buyOrderQuantity } = this.refs;
-      if(buyOrderQuantity.value){
-        try {
-          await this.opts.acceptBid(buyOrderQuantity.value);
-          // チェック、入力をリセット
-          buyOrderQuantity.value = '';
-          this.opts.bidInfo.map((s, i) => s.selected = false);
-          this.update();
-        } catch(e) {
-          return;
-        }
+      try {
+        await this.opts.acceptBid(this.selectedBidPrice, this.bidQuantity);
+        // チェック、入力をリセット
+        this.bidQuantity = '';
+        this.opts.bidInfo.map((s, i) => s.selected = false);
+        this.update();
+      } catch(e) {
+        return;
       }
     }
 

@@ -57,6 +57,7 @@ card-ask
     selectRow(e){
       this.opts.askInfo.map((s, i) => s.selected = i === e.item.i);
       const selectedAsk = opts.askInfo[e.item.i]
+      this.selectedAskPrice = selectedAsk.price;
       this.selectedAskPriceEth = selectedAsk.priceEth;
       this.checkAcceptAsk();
       this.update();
@@ -99,8 +100,7 @@ card-ask
 
     async acceptAsk(){
       try {
-        console.log(this.selectedAsk, this.askQuantity);
-        await this.opts.acceptAsk(this.selectedAsk, this.askQuantity);
+        await this.opts.acceptAsk(this.selectedAskPrice, this.askQuantity);
         this.update();
       } catch (e) {
         // noop

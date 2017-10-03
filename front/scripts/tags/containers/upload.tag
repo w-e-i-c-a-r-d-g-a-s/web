@@ -195,7 +195,7 @@ upload
      */
     async _addCard(name, totalSupply, imageHash){
       // console.log(name, totalSupply, imageHash);
-      const gas = 1599659;
+      const gas = 2599659;
       return new Promise((resolve, reject) => {
         try {
           const tx = this.web3c.addCard(this.user.etherAccount, name, totalSupply, imageHash.toString(), gas);

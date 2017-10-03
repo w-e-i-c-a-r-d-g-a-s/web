@@ -25,7 +25,6 @@ card-bid-form
                   oninput="{changeBidPrice}"
                 )
                 span.input-group-addon.addon-sm Ether
-              p.form-input-hint (現状整数のみ入力可)
           .column.col-4
             .form-group
               label.form-label &nbsp;

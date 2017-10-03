@@ -229,10 +229,18 @@ const web3c = {
     return _.sortBy(askInfo, ['price', 'totalPrice']);
   },
 
+  /**
+   * 買い注文(bid)を生成
+   * @param {string} from 送信者
+   * @param {string} cardAddress カードアドレス
+   * @param {number} quantity 数量
+   * @param {number} price 価格
+   * @param {number} gas ガス量
+   * @returns tx
+   */
   bid(from, cardAddress, quantity, price, gas){
     const card = cardContract.at(cardAddress);
-    const value = quantity * web3.toWei(price, 'ether');
-    return card.bid(quantity, price, { from, gas, value });
+    return card.bid(quantity, price, { from, gas, value: price * quantity });
   },
 
   /**
@@ -241,21 +249,26 @@ const web3c = {
    */
   getBidInfo(card){
     const bidInfos = [];
-    for (let i = 0, len = card.getBidInfosCount().toNumber(); i < len; i++) {
-      const bidInfo = bidInfoContract.at(card.bidInfos(i));
-      if(!bidInfo.ended()){
-        bidInfos.push({
-          id: i,
-          buyer: bidInfo.buyer(),
-          totalPrice: bidInfo.value().toNumber(), // トータル wei
-          totalPriceEth: web3.fromWei(bidInfo.value(), 'ether').toNumber(),
-          quantity: bidInfo.quantity().toNumber(),
-          price: bidInfo.price().toNumber(), // 単価 wei
-          priceEth:web3.fromWei(bidInfo.price(), 'ether').toNumber()
-        });
+
+    card.getBidInfoPrices().forEach((priceKey, j) => {
+      const bidInfoId = card.bidInfos(priceKey);
+      const bidInfo = bidInfoContract.at(bidInfoId);
+      let _qt = 0;
+      for (let i = 0, len = bidInfo.getBidInfoPropsCount().toNumber(); i < len; i++) {
+        const [buyer, quantity] = bidInfo.bidInfoProps(i);
+        _qt += quantity.toNumber();
       }
-    }
-    return _.orderBy(bidInfos, ['price', 'totalPrice'], ['desc', 'desc']);
+
+      const price = bidInfo.price().toNumber();
+      bidInfos.push({
+        id: j,
+        price,
+        priceEth: web3.fromWei(price, 'ether'),
+        quantity: _qt
+      });
+    });
+
+    return _.orderBy(bidInfos, ['price'], ['desc']);
   },
 
   refreshBidInfo(cardAddress){
@@ -267,13 +280,13 @@ const web3c = {
    * 買い注文(bid)に対して売る
    * @param {string} from 送信者
    * @param {string} cardAddress カードアドレス
-   * @param {number} bidIndex 買い注文インデックス
+   * @param {number} price 買い注文の金額(wei)
+   * @param {number} quantity 売る量
+   * @param {number} gas ガス
    */
-  acceptBid(from, cardAddress, bidIndex, quantity, gas){
+  acceptBid(from, cardAddress, price, quantity, gas){
     const card = cardContract.at(cardAddress);
-    const bidInfo = bidInfoContract.at(card.bidInfos(bidIndex));
-    const value = web3.fromWei(bidInfo.price(), 'ether').mul(quantity).toNumber();
-    return card.acceptBid(bidIndex, quantity, { from, gas, value });
+    return card.acceptBid(price, quantity, { from, gas });
   },
 
   /**
