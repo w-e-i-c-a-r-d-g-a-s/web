@@ -59,6 +59,15 @@
   width: var(--card-width);
 }
 
+.my-cards {
+  display: inline-block;
+  float: left;
+
+  & > .detail {
+    margin: 0 10px 10px;
+  }
+}
+
 .td-card {
   width: var(--card-width);
   height: calc(var(--card-width) * 1.618);

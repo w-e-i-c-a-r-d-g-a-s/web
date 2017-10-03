@@ -2,7 +2,16 @@ mycards
   .page.container
     .columns.mt-2
       .column.col-12(if="{myCards.length > 0}")
-        card(each="{card in myCards}" card="{card}" go-detail="{opts.goDetail}")
+        .my-cards(each="{card in myCards}")
+          card(card="{card}" go-detail="{opts.goDetail}")
+          .detail
+            .columns
+              .column.col-6 所有枚数
+              .column.col-6
+                strong {card.cardNum}枚
+            .columns
+              .column.col-12
+                button.btn.btn-primary.btn-block.mt-2 このカードを配布する
       .column.col-12(if="{myCards.length === 0}")
         .empty
           .empty-icon

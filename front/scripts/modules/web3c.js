@@ -100,6 +100,8 @@ const web3c = {
   getCards(account){
     const cards = cardMasterInstance.getCardAddresses().map((address) => {
       const card = cardContract.at(address);
+      const cardNum = account ? card.balanceOf(account).toString(10) : 0;
+
       return {
         card,
         address,
@@ -107,7 +109,8 @@ const web3c = {
         imageHash: web3.toAscii(card.imageHash()),
         author: card.author(),
         totalSupply: card.totalSupply().toString(10),
-        currentMarketPrice: web3.fromWei(card.currentMarketPrice().toNumber(), 'ether')
+        currentMarketPrice: web3.fromWei(card.currentMarketPrice().toNumber(), 'ether'),
+        cardNum
       }
     });
     return account ? cards.filter((c) => {

@@ -14,7 +14,8 @@ card
       .columns
         .column.col-4 最安値
         .column.col-8
-          price(val="{(+opts.card.currentMarketPrice).toFixed(3)}" unit="ether" linebreak="true")
+          p(if="{+opts.card.currentMarketPrice == 0}") まだ取引されていません
+          price(if="{+opts.card.currentMarketPrice > 0}" val="{(+opts.card.currentMarketPrice).toFixed(3)}" unit="ether" linebreak="true")
 
   script.
     goDetail(){
