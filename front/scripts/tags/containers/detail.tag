@@ -400,9 +400,9 @@ detail
       // 買い注文から売る
       if(inputMethod === 'acceptBid'){
         const index = inputArgs[0];
-        const buyOrder = this.web3c.getBid(card.address, index);
+        const buyOrder = this.web3c.getBidInfo(card.address, index);
         const price = this.web3c.weiToEth(buyOrder.price().toNumber());
-        return `${price}ETH で ${inputArgs[1]}枚 売却しました`
+        return `${price}ETH で ${inputArgs[1]}枚 売却されました`
       }
       // 送付
       if(inputMethod === 'deal'){

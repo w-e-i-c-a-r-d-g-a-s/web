@@ -142,8 +142,8 @@ const web3c = {
   // カード情報を取得
   getCard(cardAddress){
     const card = cardContract.at(cardAddress);
-    const askInfo = this.getAskInfo(card);
-    const bidInfo = this.getBidInfo(card);
+    const askInfo = this.getAskInfos(card);
+    const bidInfo = this.getBidInfos(card);
     const owners = card.getOwnerList().map((address) => {
       return { address, num: card.balanceOf(address).toString(10) };
     });
@@ -199,12 +199,14 @@ const web3c = {
     return card.closeAsk(askIndex, { from, gas });
   },
 
+  /*
   refreshAskInfo(cardAddress){
     const card = cardContract.at(cardAddress);
-    return this.getAskInfo(card);
+    return this.getAskInfos(card);
   },
+  */
 
-  getAskInfo(card){
+  getAskInfos(card){
     const askInfo = [];
     const askInfoPrices = card.getAskInfoPrices();
     for (let i = 0, len = card.getAskInfoPricesCount().toNumber(); i < len; i++) {
@@ -244,10 +246,31 @@ const web3c = {
   },
 
   /**
+   * 買い注文情報を取得
+   * @param {string} cardAddress カードアドレス
+   * @param {number} price 買い注文金額（wei）
+   */
+  getBidInfo(cardAddress, price){
+    const card = cardContract.at(cardAddress);
+    // TODO solidityがアップデートされたら使う
+    // return bidInfoContract.at(card.getBidInfo(price));
+    // ↓仮
+    const prices = card.getBidInfoPrices();
+    for (let i = 0, len = prices.length; i < len; i++) {
+      const priceKey = prices[i];
+      const bidInfoId = card.bidInfos(priceKey);
+      const bidInfo = bidInfoContract.at(bidInfoId);
+      if(price === bidInfo.price().toNumber()){
+        return bidInfo;
+      }
+    }
+  },
+
+  /**
    * 買い注文(bid)一覧を取得
    * @param {object} card カードコントラクト
    */
-  getBidInfo(card){
+  getBidInfos(card){
     const bidInfos = [];
 
     card.getBidInfoPrices().forEach((priceKey, j) => {
@@ -271,10 +294,12 @@ const web3c = {
     return _.orderBy(bidInfos, ['price'], ['desc']);
   },
 
+  /*
   refreshBidInfo(cardAddress){
     const card = cardContract.at(cardAddress);
-    return this.getBidInfo(card);
+    return this.getBidInfos(card);
   },
+  */
 
   /**
    * 買い注文(bid)に対して売る
@@ -300,16 +325,6 @@ const web3c = {
     const card = cardContract.at(cardAddress);
     const bidInfo = bidInfoContract.at(card.bidInfos(bidIndex));
     return bidInfo.close({ from, gas });
-  },
-
-  /**
-   * 買い注文情報を取得
-   * @param {string} cardAddress カードアドレス
-   * @param {number} askIndex 買い注文インデックス
-   */
-  getBid(cardAddress, askIndex){
-    const card = cardContract.at(cardAddress);
-    return bidInfoContract.at(card.bidInfos(askIndex));
   },
 
   /**
