@@ -157,7 +157,7 @@ activity
     },
 
     genDealText(inputArgs){
-      return `${inputArgs[1]}枚 配布しました`
+      return `${inputArgs[1]}枚 配布されました`
     },
 
     genAskText(inputArgs){

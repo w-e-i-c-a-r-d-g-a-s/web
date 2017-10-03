@@ -107,7 +107,7 @@ const setEtherPriceAPI = () => {
 
   route('mycards', () => {
     obs.trigger(EVENT.UPDATE_MENU, { selectedMenu: MENUS.MYCARDS });
-    riot.mount('app', 'mycards');
+    riot.mount('app', 'mycards', {obs});
   });
 
   route('upload', () => {

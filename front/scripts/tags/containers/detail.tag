@@ -44,7 +44,6 @@ detail
           quantity-error-msg="{quantityErrorMsg}"
           total-supply="{card.totalSupply}"
         )
-        // card-deal(deal="{deal}" total-supply="{card.totalSupply}" number-of-card="{numberOfCard}")
         card-activity(card-address="{opts.cardAddress}" activities="{activities}")
     password-modal(
       unlock="{unlock}"
@@ -352,34 +351,6 @@ detail
     }
 
     /**
-     * カードを配布
-     * @param {number} quantity 数量
-     * @param {string} receiver 受信者のアドレス
-     */
-    deal(quantity, receiver){
-      const gas = 200000;
-      const { address } = this.card;
-      const { etherAccount } = this.user;
-      return new Promise(async (resolve, reject) => {
-        try {
-          await this.inputUnlock();
-          try{
-            const tx = this.web3c.deal(etherAccount, address, quantity, receiver, gas);
-            this.opts.obs.trigger('notifySuccess', {
-              text: `transaction send! => ${tx}`
-            });
-            resolve();
-          }catch(e){
-            this.opts.obs.trigger('notifyError', { text: e.message });
-            reject();
-          }
-        }catch(e){
-          reject();
-        }
-      });
-    }
-
-    /**
      * アクティビティのテキスト生成
      * @param {object} activityData アクティビティのデータ
      */
@@ -415,7 +386,7 @@ detail
       }
       // 送付
       if(inputMethod === 'deal'){
-        return `${inputArgs[1]}枚 配布しました`
+        return `${inputArgs[1]}枚 配布されました`
       }
 
       return `${inputMethod} しました`
