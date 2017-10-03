@@ -104,9 +104,9 @@ detail
           // 前のデータがないときは先頭に
           this.activities.unshift(v);
         }
-        this.update();
         // オーナ情報、ask, bidを付け直す
-        setUpdateData();
+        setUpdateData(v.card);
+        this.update();
       });
     });
 
@@ -117,13 +117,11 @@ detail
     /**
      * カードの更新データを取得
      */
-    setUpdateData(){
-      const newCardData = this.web3c.getCard(this.opts.cardAddress);
+    setUpdateData(newCardData){
       this.card.bidInfo = newCardData.bidInfo;
       this.card.askInfo = newCardData.askInfo;
       this.card.currentMarketPrice = newCardData.currentMarketPrice;
       this.card.owners = newCardData.owners;
-      this.update();
     }
 
     /**
