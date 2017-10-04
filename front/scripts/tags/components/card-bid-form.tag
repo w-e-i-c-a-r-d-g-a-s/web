@@ -1,7 +1,7 @@
 card-bid-form
   .panel.mt-2
     .panel-header
-      .panel-title カードを売却する
+      .panel-title カードを購入する
     .panel-body
       form(autocomplete="off" role="presentation")
         .columns
