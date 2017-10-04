@@ -4,7 +4,7 @@ activity
       .column.col-7
         h5 カード売り買い一覧
         my-act-card(
-          each="{card in myCards}"
+          each="{card in cards}"
           card="{card}"
           cancel-ask="{parent.cancelAsk}"
           cancel-bid="{parent.cancelBid}"
@@ -49,7 +49,7 @@ activity
     this.latestSK = null;
 
     this.etherJPY = null;
-    this.myCards = [];
+    this.cards = [];
     this.showPasswordModal = false;
 
     opts.obs.on('updateEthPrice', (({ etherJPY }) => {
@@ -58,8 +58,8 @@ activity
     }));
 
     this.on('mount', () => {
-      this.myCards = this.web3c.getCards(this.user.etherAccount);
-      this.myCards.forEach(async (c) => {
+      this.cards = this.web3c.getCards();
+      this.cards.forEach(async (c) => {
         const cardData = await this.firebase.getCard(c.imageHash);
         if(cardData){
           c.imageUrl = cardData.url;
