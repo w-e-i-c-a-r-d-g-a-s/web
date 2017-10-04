@@ -289,18 +289,7 @@ const web3c = {
    */
   getBidInfo(cardAddress, price){
     const card = cardContract.at(cardAddress);
-    // TODO solidityがアップデートされたら使う
-    // return bidInfoContract.at(card.getBidInfo(price));
-    // ↓仮
-    const prices = card.getBidInfoPrices();
-    for (let i = 0, len = prices.length; i < len; i++) {
-      const priceKey = prices[i];
-      const bidInfoId = card.bidInfos(priceKey);
-      const bidInfo = bidInfoContract.at(bidInfoId);
-      if(price === bidInfo.price().toNumber()){
-        return bidInfo;
-      }
-    }
+    return bidInfoContract.at(card.getBidInfo(price));
   },
 
   /**
