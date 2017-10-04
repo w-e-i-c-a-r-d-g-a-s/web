@@ -1,15 +1,6 @@
 activity
   .container.page
     .columns.mt-2
-      .column.col-7
-        h5 カード売り買い一覧
-        my-act-card(
-          each="{card in cards}"
-          card="{card}"
-          cancel-ask="{parent.cancelAsk}"
-          cancel-bid="{parent.cancelBid}"
-        )
-
       .column.col-5
         h5 アクティビティ
         .loading(if="{isLoading}")
@@ -33,6 +24,15 @@ activity
                       a(href="#/cards/{acts.card.address}") {acts.card.name}
                       span : {getActivityText(acts)}
           button.btn.mt-2(if="{isShowNext}" onclick="{getNext}" class="{loading: isNextLoading}") next
+      .column.col-7
+        h5 カード売り買い一覧
+        my-act-card(
+          each="{card in cards}"
+          card="{card}"
+          cancel-ask="{parent.cancelAsk}"
+          cancel-bid="{parent.cancelBid}"
+        )
+
     password-modal(
       show="{showPasswordModal}"
       deferred="{deferred}"

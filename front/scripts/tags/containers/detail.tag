@@ -302,7 +302,7 @@ detail
       // 売り注文を発行
       if(inputMethod === 'ask'){
         const eth = this.web3c.weiToEth(inputArgs[1]);
-        return `${eth}ETH で ${inputArgs[0]}枚 の売り注文を作成されました`
+        return `${eth}ETH で ${inputArgs[0]}枚 出品されました`
       }
       // 売り注文から買う
       if(inputMethod === 'acceptAsk'){
@@ -312,7 +312,8 @@ detail
       }
       // 買い注文から買う
       if(inputMethod === 'bid'){
-        return `${inputArgs[1]}ETH で ${inputArgs[0]}枚 の買い注文が作成されました`
+        const eth = this.web3c.weiToEth(inputArgs[1]);
+        return `${eth}ETH で ${inputArgs[0]}枚 の買い注文が作成されました`
       }
       // 買い注文から売る
       if(inputMethod === 'acceptBid'){
