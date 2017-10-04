@@ -113,6 +113,10 @@ const getStructLogs = (txHash) => {
 // トランザクション登録
 const setTransaction = (tx) => {
   const receipt = web3.eth.getTransactionReceipt(tx.hash);
+  // console.log('---------------------------------------------------');
+  // console.log(tx);
+  // console.log(receipt);
+  // console.log('---------------------------------------------------');
   const { timestamp } = web3.eth.getBlock(tx.blockNumber);
   const { gas, gasPrice, hash, value, transactionIndex } = tx;
   const { gasUsed } = receipt;
@@ -123,6 +127,7 @@ const setTransaction = (tx) => {
       const lastStatement = structLogs[structLogs.length - 1];
       // 成功かどうか
       isSuccess = lastStatement.error === null && lastStatement.op === 'STOP';
+      if(!isSuccess){ console.error(lastStatement); }
     }
 
     // カードかカーマスターかの判定
@@ -273,7 +278,10 @@ filter.watch(function(error) {
 
   // 確定したブロックを参照するため、ある程度遡ったブロックを参照
   const confirmedBlock = web3.eth.getBlock(web3.eth.blockNumber - backwordNum);
-  console.log("block =>", confirmedBlock.hash, confirmedBlock.transactions.length);
+
+  if(confirmedBlock.transactions.length > 0){
+    console.log("block =>", confirmedBlock.hash, confirmedBlock.transactions.length);
+  }
   confirmedBlock.transactions.forEach(function(txId) {
     const tx = web3.eth.getTransaction(txId);
     console.log('setTransaction', tx.hash);
