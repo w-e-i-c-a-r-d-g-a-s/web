@@ -21,7 +21,6 @@ detail
           accept-ask="{acceptAsk}"
           ask="{ask}"
           ask-info="{card.askInfo}"
-          cancel-ask="{cancelAsk}"
           ask-id="{askId}"
           number-of-card="{numberOfCard}"
         )
@@ -34,7 +33,6 @@ detail
           ether-jpy="{etherJPY}"
           bid-info="{card.bidInfo}"
           accept-bid="{acceptBid}"
-          cancel-bid="{cancelBid}"
         )
         card-bid-form(
           bid="{bid}"
@@ -46,7 +44,6 @@ detail
         )
         card-activity(card-address="{opts.cardAddress}" activities="{activities}")
     password-modal(
-      unlock="{unlock}"
       show="{showPasswordModal}"
       deferred="{deferred}"
       obs="{opts.obs}"
@@ -199,35 +196,6 @@ detail
       });
     }
 
-    /**
-     * 売り注文を取り消し
-     * @param {number} askId 売り注文のリスト番号（画面上のindex）
-     * @returns {Promise}
-     */
-    cancelAsk(askId){
-      const selectedAsk = this.card.askInfo[askId];
-      const gas = 1523823;
-      const { address } = this.card;
-      const { etherAccount } = this.user;
-      return new Promise(async (resolve, reject) => {
-        try{
-          await this.inputUnlock();
-          try{
-            const tx = this.web3c.cancelAsk(etherAccount, address, selectedAsk.id, gas);
-            this.opts.obs.trigger('notifySuccess', {
-              text: `transaction send! => ${tx}`
-            });
-            this.card.askInfo.splice(askId, 1);
-            resolve();
-          }catch(e){
-            this.opts.obs.trigger('notifyError', { text: e.message });
-            reject('err transaction faild');
-          }
-        }catch(e){
-          reject('canceled');
-        }
-      });
-    }
 
     /**
      * 買い注文(bid)を発行
@@ -279,37 +247,6 @@ detail
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
-          }catch(e){
-            this.opts.obs.trigger('notifyError', { text: e.message });
-            reject('err transaction faild');
-          }
-        }catch(e){
-          reject();
-        }
-      });
-    }
-
-    /**
-     * 買い注文を取り消し
-     *
-     * @param {number} bidId 買い注文のリスト番号（画面上のindex）
-     * @returns {Promise}
-     */
-    cancelBid(bidId){
-      const selectedBid = this.card.bidInfo[bidId];
-      const gas = 1523823;
-      const { address } = this.card;
-      const { etherAccount } = this.user;
-      return new Promise(async (resolve, reject) => {
-        try{
-          await this.inputUnlock();
-          try{
-            const tx = this.web3c.cancelBid(etherAccount, address, selectedBid.id, gas);
-            this.opts.obs.trigger('notifySuccess', {
-              text: `transaction send! => ${tx}`
-            });
-            this.card.bidInfo.splice(bidId, 1);
-            resolve();
           }catch(e){
             this.opts.obs.trigger('notifyError', { text: e.message });
             reject('err transaction faild');

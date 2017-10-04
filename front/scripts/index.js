@@ -6,6 +6,7 @@ import '../styles/app.css';
 //tags
 import './tags/app.tag';
 import './tags/components/card.tag';
+import './tags/components/card-sm.tag';
 import './tags/components/navbar.tag';
 import './tags/components/card-owners.tag';
 import './tags/components/card-bid.tag';
@@ -18,6 +19,7 @@ import './tags/components/card-accept-bid.tag';
 import './tags/components/card-activity.tag';
 import './tags/components/card-tags.tag';
 import './tags/components/card-prices.tag';
+import './tags/components/my-act-card.tag';
 import './tags/containers/home.tag';
 import './tags/containers/mycards.tag';
 import './tags/containers/activity.tag';

@@ -47,7 +47,6 @@ mycards
     this.myCards = [];
     this.on('mount', () => {
       this.myCards = this.web3c.getCards(this.user.etherAccount);
-      this.update();
       this.myCards.forEach(async (c) => {
         const cardData = await this.firebase.getCard(c.imageHash);
         if(cardData){

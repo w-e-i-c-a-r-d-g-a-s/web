@@ -122,13 +122,5 @@ card-ask
       }
     }
 
-    async cancelAsk(e){
-      try {
-        await this.opts.cancelAsk(e.item.i);
-        this.update();
-      } catch (e) {
-        // noop
-      }
-    }
 
 

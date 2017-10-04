@@ -238,6 +238,36 @@ const web3c = {
     return _.sortBy(askInfo, ['price', 'totalPrice']);
   },
 
+  getOwnAskInfos(cardAddress, account){
+    const card = cardContract.at(cardAddress);
+    const askInfo = [];
+    const askInfoPrices = card.getAskInfoPrices();
+    for (let i = 0, len = card.getAskInfoPricesCount().toNumber(); i < len; i++) {
+      const priceKey = askInfoPrices[i];
+      const [from, quantity] = card.readAskInfo(priceKey, 0);
+
+      if(quantity.toNumber() < 1 || from !== account){
+        continue;
+      }
+      const price = web3.toDecimal(priceKey);
+      const idx = _.findIndex(askInfo, ['price', price]);
+      if(idx !== -1){
+        askInfo[idx].quantity += quantity.toNumber();
+      } else {
+        askInfo.push({
+          id: i,
+          from,
+          quantity: quantity.toNumber(),
+          price,
+          priceEth: web3.fromWei(price, 'ether'),
+          totalPrice: quantity.mul(price).toNumber(),
+          totalPriceEth: quantity.mul(web3.fromWei(price, 'ether')).toNumber()
+        });
+      }
+    }
+    return _.sortBy(askInfo, ['price', 'totalPrice']);
+  },
+
   /**
    * 買い注文(bid)を生成
    * @param {string} from 送信者
@@ -306,6 +336,42 @@ const web3c = {
     return _.orderBy(bidInfos, ['price'], ['desc']);
   },
 
+  /**
+   * 買い注文(bid)一覧を取得
+   * @param {object} card カードコントラクト
+   */
+  getOwnBidInfos(cardAddress, account){
+    const card = cardContract.at(cardAddress);
+    const bidInfos = [];
+    const prices = card.getBidInfoPrices();
+    for (var j = 0, len = prices.length; j < len; j++) {
+      const priceKey = prices[j];
+      const bidInfoId = card.bidInfos(priceKey);
+      const bidInfo = bidInfoContract.at(bidInfoId);
+      let _qt = 0;
+      for (let i = 0, len = bidInfo.getBidInfoPropsCount().toNumber(); i < len; i++) {
+        const [buyer, quantity] = bidInfo.bidInfoProps(i);
+        if(buyer === account){
+          _qt += quantity.toNumber();
+        }
+      }
+
+      if(_qt < 1){
+        continue;
+      }
+
+      const price = bidInfo.price().toNumber();
+      bidInfos.push({
+        id: j,
+        price,
+        priceEth: web3.fromWei(price, 'ether'),
+        quantity: _qt
+      });
+    }
+
+    return _.orderBy(bidInfos, ['price'], ['desc']);
+  },
+
   /*
   refreshBidInfo(cardAddress){
     const card = cardContract.at(cardAddress);
@@ -330,12 +396,12 @@ const web3c = {
    * 買い注文(bid)をキャンセル
    * @param {string} from 送信者
    * @param {string} cardAddress カードアドレス
-   * @param {number} bidIndex 買い注文インデックス
+   * @param {number} price 買い注文金額
    * @param {number} gas gas
    */
-  cancelBid(from, cardAddress, bidIndex, gas){
+  cancelBid(from, cardAddress, price, gas){
     const card = cardContract.at(cardAddress);
-    const bidInfo = bidInfoContract.at(card.bidInfos(bidIndex));
+    const bidInfo = this.getBidInfo(cardAddress, price);
     return bidInfo.close({ from, gas });
   },
 

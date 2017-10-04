@@ -1,9 +1,17 @@
 activity
   .container.page
-    .columns
-      .column.col-3
-      .column.col-6
-        h5 Activity
+    .columns.mt-2
+      .column.col-7
+        h5 カード売り買い一覧
+        my-act-card(
+          each="{card in myCards}"
+          card="{card}"
+          cancel-ask="{parent.cancelAsk}"
+          cancel-bid="{parent.cancelBid}"
+        )
+
+      .column.col-5
+        h5 アクティビティ
         .loading(if="{isLoading}")
         div(if="{!isLoading}")
           div(if="{dispActivities.length === 0}")
@@ -25,8 +33,13 @@ activity
                       a(href="#/cards/{acts.card.address}") {acts.card.name}
                       span : {getActivityText(acts)}
           button.btn.mt-2(if="{isShowNext}" onclick="{getNext}" class="{loading: isNextLoading}") next
-      .column.col-3
+    password-modal(
+      show="{showPasswordModal}"
+      deferred="{deferred}"
+      obs="{opts.obs}"
+    )
   script.
+    import Deferred from 'es6-deferred';
     import _ from 'lodash';
     this.isLoading = true;
     this.isNextLoading = false;
@@ -36,12 +49,24 @@ activity
     this.latestSK = null;
 
     this.etherJPY = null;
+    this.myCards = [];
+    this.showPasswordModal = false;
+
     opts.obs.on('updateEthPrice', (({ etherJPY }) => {
       this.etherJPY = etherJPY;
       this.update();
     }));
 
     this.on('mount', () => {
+      this.myCards = this.web3c.getCards(this.user.etherAccount);
+      this.myCards.forEach(async (c) => {
+        const cardData = await this.firebase.getCard(c.imageHash);
+        if(cardData){
+          c.imageUrl = cardData.url;
+        }
+        this.update();
+      });
+
       // this.firebase.updateUserTransactionsRef(this.user.etherAccount);
       const utRef = this.firebase.getUserTransactionsRef(this.user.etherAccount);
       utRef.once('value', (snapshots) => {
@@ -120,6 +145,97 @@ activity
         this.update();
         this.latestSK = _.last(this.activities).sortKey;
       });
+    }
+
+    /**
+     * 売り注文を取り消し
+     * @param {number} price 売り注文の金額(wei)
+     * @returns {Promise}
+     */
+    cancelAsk(price){
+      /*
+      const selectedAsk = this.card.askInfo[askId];
+      const gas = 1523823;
+      const { address } = this.card;
+      const { etherAccount } = this.user;
+      return new Promise(async (resolve, reject) => {
+        try{
+          await this.inputUnlock();
+          try{
+            const tx = this.web3c.cancelAsk(etherAccount, address, selectedAsk.id, gas);
+            this.opts.obs.trigger('notifySuccess', {
+              text: `transaction send! => ${tx}`
+            });
+            this.card.askInfo.splice(askId, 1);
+            resolve();
+          }catch(e){
+            this.opts.obs.trigger('notifyError', { text: e.message });
+            reject('err transaction faild');
+          }
+        }catch(e){
+          reject('canceled');
+        }
+      });
+      */
+    }
+
+    /**
+     * パスワード入力モーダルを表示
+     * @returns {Promise}
+     */
+    inputUnlock(){
+      return new Promise(async (resolve, reject) => {
+        // アンロックダイアログを表示
+        const res = await this.unlockAccount();
+        if(res){
+          // アンロック処理後
+          console.log('unlocked!');
+          this.showPasswordModal = false;
+          this.update();
+          resolve();
+        }else{
+          this.showPasswordModal = false;
+          this.update();
+          reject(Error('err'));
+        }
+      });
+    }
+
+    /**
+     * 買い注文を取り消し
+     *
+     * @param {string} address アドレス
+     * @param {number} price 買い注文の金額
+     * @returns {Promise}
+     */
+    cancelBid(address, price){
+      const gas = 1523823;
+      const { etherAccount } = this.user;
+      return new Promise(async (resolve, reject) => {
+        try{
+          await this.inputUnlock();
+          try{
+            const tx = this.web3c.cancelBid(etherAccount, address, price, gas);
+            this.opts.obs.trigger('notifySuccess', {
+              text: `transaction send! => ${tx}`
+            });
+            resolve();
+          }catch(e){
+            this.opts.obs.trigger('notifyError', { text: e.message });
+            reject('err transaction faild');
+          }
+        }catch(e){
+          reject();
+        }
+      });
+    }
+
+    unlockAccount(){
+      // モーダルを表示し、処理を待つ
+      this.deferred = new Deferred();
+      this.showPasswordModal = true;
+      this.update();
+      return this.deferred.promise;
     }
 
     /**

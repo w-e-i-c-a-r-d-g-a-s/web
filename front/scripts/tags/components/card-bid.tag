@@ -110,12 +110,3 @@ card-bid
         return;
       }
     }
-
-    async cancelBid(e){
-      try {
-        await this.opts.cancelBid(e.item.i);
-        this.update();
-      } catch(e) {
-        console.error(e, 'fail: cancelBid');
-      }
-    }
