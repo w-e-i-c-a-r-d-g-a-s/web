@@ -9,7 +9,7 @@
     "build": "webpack -p --config ./webpack.config.production.js",
     "postbuild": "mv ./public/javascripts/app.css ./public/stylesheets/app.css",
     "solc": "solc --hashes ./contracts/contracts/CardMaster.sol -o ./contracts/build/signatures --overwrite",
-    "update-contracts": "git submodule update --recursive --remote && (cd contracts && truffle compile && truffle migrate --reset) && npm run solc"
+    "update-contracts": "git submodule update --recursive --remote && (cd contracts && truffle compile) && npm run solc"
   },
   "dependencies": {
     "babel-core": "^6.25.0",
