@@ -1,50 +1,40 @@
 card-ask
-  .panel.mt-2
-    .panel-header
-      .panel-title
-        | カードを買う
-        // button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshAskInfo}")
-          // i.icon.icon-refresh
-    .panel-body
-      .columns
-        .column.col-9
-          h5.inline-block.text-normal 出品中のカード
-          .empty(if="{opts.askInfo && opts.askInfo.length === 0}")
-            .empty-icon
-              i.icon.icon-message(style="font-size: 3rem")
-            h4.empty-title 現在売り注文はありません
-          table.table.table-striped.table-hover(if="{opts.askInfo.length > 0}")
-            tr
-              th
-              th
-              th 販売価格
-              th.text-right 枚数
-            tr(each="{o, i in opts.askInfo}" onclick="{onClickRow}")
-              td
-                input(
-                  type="radio"
-                  name="askrow"
-                  value="{i}"
-                  checked="{o.selected}"
-                  onchange="{parent.opts.selectAsk}"
-                )
-              td
-                small.bg-success.text-light.p-1.rounded(show="{i === 0}") 最安値!
-              td.tooltip(data-tooltip="{o.price} Wei")
-                price(val="{o.price}" unit="wei")
-              td.text-right {o.quantity}
-          card-accept-ask(
-            if="{opts.askInfo.length > 0}"
-            accept="{acceptAsk}"
-            ether-jpy="{opts.etherJpy}"
-            on-input-num="{onChangeeAcceptAskQt}"
-            enable-accept-ask="{enableAcceptAsk}"
-            error-msg="{errorMsg}"
-            price="{this.selectedAskPriceEth}"
-            button-text="購入する"
-            ref="cardAcceptAsk"
-          )
-    .panel-footer
+  // h5.inline-block.text-normal 出品中のカード
+  .empty(if="{opts.askInfo && opts.askInfo.length === 0}")
+    .empty-icon
+      i.icon.icon-message(style="font-size: 3rem")
+    h4.empty-title 現在出品中のカードがありません
+  table.table.table-striped.table-hover(if="{opts.askInfo.length > 0}")
+    tr
+      th
+      th
+      th 販売価格
+      th.text-right 枚数
+    tr(each="{o, i in opts.askInfo}" onclick="{onClickRow}")
+      td
+        input(
+          type="radio"
+          name="askrow"
+          value="{i}"
+          checked="{o.selected}"
+          onchange="{parent.opts.selectAsk}"
+        )
+      td
+        small.bg-success.text-light.p-1.rounded(show="{i === 0}") 最安値!
+      td.tooltip(data-tooltip="{o.price} Wei")
+        price(val="{o.price}" unit="wei")
+      td.text-right {o.quantity}
+  card-accept(
+    if="{opts.askInfo.length > 0}"
+    accept="{acceptAsk}"
+    ether-jpy="{opts.etherJpy}"
+    on-input-num="{onChangeeAcceptAskQt}"
+    enable-accept-ask="{enableAcceptAsk}"
+    error-msg="{errorMsg}"
+    price="{this.selectedAskPriceEth}"
+    button-text="購入する"
+    ref="cardAcceptAsk"
+  )
 
   script.
     this.errorMsg = '';

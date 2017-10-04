@@ -1,48 +1,50 @@
 card-ask-form
-  .panel.mt-2
+  .panel
     .panel-header
       .panel-title カードを出品する
     .panel-body(if="{opts.numberOfCard > 0}")
-      form(autocomplete="off" role="presentation")
-        .columns
-          .column.col-2
-            .form-group
-              label.form-label(for="input-quantity") 枚数
-              input#input-quantity.form-input.input-sm(
-                type="number"
-                oninput="{changeAskQuantity}"
-                class="{'is-error': quantityError}"
-                value="{askQuantity}"
+      form.form-horizontal(autocomplete="off" role="presentation")
+        .form-group
+          .col-5
+            label.form-label(for="input-quantity") 枚数
+          .col-7
+            input#input-quantity.form-input(
+              type="number"
+              oninput="{changeAskQuantity}"
+              class="{'is-error': quantityError}"
+              value="{askQuantity}"
+            )
+            p.form-input-hint(if="{quantityErrorMsg}") {quantityErrorMsg}
+        .form-group
+          .col-5
+            label.form-label(for="input-price") 1枚あたりの価格
+          .col-7
+            .input-group
+              input#input-price.form-input(
+                type="text"
+                oninput="{changePrice}"
+                value="{askPrice}"
               )
-              p.form-input-hint {quantityErrorMsg}
-          .column.col-4
-            .form-group
-              label.form-label(for="input-price") 1枚あたりの価格
-              .input-group
-                input#input-price.form-input.input-sm(
-                  type="text"
-                  oninput="{changePrice}"
-                  value="{askPrice}"
-                )
-                span.input-group-addon.addon-sm Ether
-          .column.col-4
-            .form-group
-              label.form-label &nbsp;
-              .input-group
-                span.input-group-addon.addon-sm 約
-                input.form-input.input-sm(
-                  type="text"
-                  disabled
-                  value="{jpy}"
-                )
-                span.input-group-addon.addon-sm 円
-          .column.col-2
-            .form-group
-              label.form-label &nbsp;
-              button.btn.btn-primary.btn-sm(
-                onclick="{ask}"
-                disabled="{!enableAsk}"
-              ) 出品する
+              span.input-group-addon Ether
+        .form-group
+          .col-5
+            label.form-label &nbsp;
+          .col-7
+            .input-group
+              span.input-group-addon 約
+              input.form-input(
+                type="text"
+                disabled
+                value="{jpy}"
+              )
+              span.input-group-addon 円
+        .form-group
+          .col-5
+          .col-7
+            button.btn.btn-primary(
+              onclick="{ask}"
+              disabled="{!enableAsk}"
+            ) 出品する
     .panel-footer(if="{opts.numberOfCard > 0}")
 
     .panel-body(if="{opts.numberOfCard === 0}")

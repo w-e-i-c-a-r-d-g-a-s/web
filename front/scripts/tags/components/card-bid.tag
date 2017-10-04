@@ -1,50 +1,40 @@
 card-bid
-  .panel.mt-2
-    .panel-header
-      .panel-title
-        | カード買い板
-        // button.btn.btn-primary.btn-action.btn-sm.float-right(onclick="{opts.refreshBidInfo}")
-          // i.icon.icon-refresh
-    .panel-body
-      .columns
-        .column.col-12
-          h5.inline-block.text-normal カード買い板
-          .empty(if="{opts.bidInfo.length === 0}")
-            .empty-icon
-              i.icon.icon-message(style="font-size: 3rem")
-            h4.empty-title 現在買い注文はありません
-          table.table.table-striped.table-hover(if="{opts.bidInfo.length > 0}")
-            tr
-              th
-              th
-              th 販売価格
-              th.text-right 枚数
-            tr(each="{o, i in opts.bidInfo}" onclick="{selectRow}")
-              td
-                input(
-                  type="radio"
-                  name="sell"
-                  value="{i}"
-                  checked="{o.selected}"
-                  onchange="{parent.opts.selectSell}"
-                )
-              td
-                small.bg-success.text-light.p-1.rounded(show="{i === 0}") 最高値!
-              td.tooltip(data-tooltip="{o.price} Wei")
-                price(val="{o.price}" unit="wei")
-              td.text-right {o.quantity}
-          card-accept-ask(
-            if="{opts.bidInfo.length > 0}"
-            accept="{acceptBid}"
-            ether-jpy="{opts.etherJpy}"
-            on-input-num="{onChangeeAcceptBidQt}"
-            enable-accept-ask="{enableAcceptBid}"
-            error-msg="{errorMsg}"
-            price="{this.selectedBidPriceEth}"
-            button-text="売却する"
-          )
+  // h5.inline-block.text-normal カード買い板
+  .empty(if="{opts.bidInfo.length === 0}")
+    .empty-icon
+      i.icon.icon-message(style="font-size: 3rem")
+    h4.empty-title 現在買い注文はありません
+  table.table.table-striped.table-hover(if="{opts.bidInfo.length > 0}")
+    tr
+      th
+      th
+      th 販売価格
+      th.text-right 枚数
+    tr(each="{o, i in opts.bidInfo}" onclick="{selectRow}")
+      td
+        input(
+          type="radio"
+          name="sell"
+          value="{i}"
+          checked="{o.selected}"
+          onchange="{parent.opts.selectSell}"
+        )
+      td
+        small.bg-success.text-light.p-1.rounded(show="{i === 0}") 最高値!
+      td.tooltip(data-tooltip="{o.price} Wei")
+        price(val="{o.price}" unit="wei")
+      td.text-right {o.quantity}
+  card-accept(
+    if="{opts.bidInfo.length > 0}"
+    accept="{acceptBid}"
+    ether-jpy="{opts.etherJpy}"
+    on-input-num="{onChangeeAcceptBidQt}"
+    enable-accept-ask="{enableAcceptBid}"
+    error-msg="{errorMsg}"
+    price="{this.selectedBidPriceEth}"
+    button-text="売却する"
+  )
 
-    .panel-footer
 
   script.
     this.bidQuantity = 0;

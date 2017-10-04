@@ -15,33 +15,50 @@ detail
             // card-owners(card="{card}")
 
       .column.col-9.col-xs-12.col-sm-12.col-md-12.col-lg-8.col-xl-9
-        card-ask(
-          ref="cardAsk"
-          ether-jpy="{etherJPY}"
-          accept-ask="{acceptAsk}"
-          ask="{ask}"
-          ask-info="{card.askInfo}"
-          ask-id="{askId}"
-          number-of-card="{numberOfCard}"
-        )
-        card-ask-form(
-          number-of-card="{numberOfCard}"
-          ether-jpy="{etherJPY}"
-          ask="{ask}"
-        )
-        card-bid(
-          ether-jpy="{etherJPY}"
-          bid-info="{card.bidInfo}"
-          accept-bid="{acceptBid}"
-        )
-        card-bid-form(
-          bid="{bid}"
-          ether-jpy="{etherJPY}"
-          change-bid-quantity="{changeBidQuantity}"
-          quantity-error="{quantityError}"
-          quantity-error-msg="{quantityErrorMsg}"
-          total-supply="{card.totalSupply}"
-        )
+        .panel.mt-2
+          .panel-header
+            .panel-title.h5 出品中のカード
+          .panel-body
+            .columns
+              .column.col-8
+                card-ask(
+                  ref="cardAsk"
+                  ether-jpy="{etherJPY}"
+                  accept-ask="{acceptAsk}"
+                  ask="{ask}"
+                  ask-info="{card.askInfo}"
+                  ask-id="{askId}"
+                  number-of-card="{numberOfCard}"
+                )
+              .column.col-4
+                card-ask-form(
+                  number-of-card="{numberOfCard}"
+                  ether-jpy="{etherJPY}"
+                  ask="{ask}"
+                )
+          .panel-footer
+        .panel.mt-2
+          .panel-header
+            // .panel-title
+          .panel-body
+            .columns
+              .column.col-8
+                  card-bid(
+                    ether-jpy="{etherJPY}"
+                    bid-info="{card.bidInfo}"
+                    accept-bid="{acceptBid}"
+                  )
+              .column.col-4
+                  card-bid-form(
+                    bid="{bid}"
+                    ether-jpy="{etherJPY}"
+                    change-bid-quantity="{changeBidQuantity}"
+                    quantity-error="{quantityError}"
+                    quantity-error-msg="{quantityErrorMsg}"
+                    total-supply="{card.totalSupply}"
+                  )
+          .panel-footer
+
         card-activity(card-address="{opts.cardAddress}" activities="{activities}")
     password-modal(
       show="{showPasswordModal}"

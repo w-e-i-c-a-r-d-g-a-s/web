@@ -1,45 +1,51 @@
 card-bid-form
-  .panel.mt-2
+  .panel
     .panel-header
       .panel-title カードを購入する
     .panel-body
-      form(autocomplete="off" role="presentation")
-        .columns
-          .column.col-2
-            .form-group
-              label.form-label(for="input-bid-quantity") 枚数
-              input#input-bid-quantity.form-input.input-sm(
-                type="number"
-                ref="bidQuantity"
-                oninput="{changeBidQuantity}"
-                class="{'is-error': quantityError}"
+      form.form-horizontal(autocomplete="off" role="presentation")
+        .form-group
+          .col-5
+            label.form-label(for="input-bid-quantity") 枚数
+          .col-7
+            input#input-bid-quantity.form-input(
+              type="number"
+              ref="bidQuantity"
+              oninput="{changeBidQuantity}"
+              class="{'is-error': quantityError}"
+            )
+            p.form-input-hint(if="{quantityErrorMsg}") {quantityErrorMsg}
+        .form-group
+          .col-5
+            label.form-label(for="input-bid-price") 一枚あたりの価格
+          .col-7
+            .input-group
+              input#input-bid-price.form-input(
+                type="text"
+                ref="bidPrice"
+                oninput="{changeBidPrice}"
               )
-              p.form-input-hint {quantityErrorMsg}
-          .column.col-4
-            .form-group
-              label.form-label(for="input-bid-price") 一枚あたりの価格
-              .input-group
-                input#input-bid-price.form-input.input-sm(
-                  type="text"
-                  ref="bidPrice"
-                  oninput="{changeBidPrice}"
-                )
-                span.input-group-addon.addon-sm Ether
-          .column.col-4
-            .form-group
-              label.form-label &nbsp;
-              .input-group
-                span.input-group-addon.addon-sm 約
-                input.form-input.input-sm.text-right(
-                  type="text"
-                  disabled
-                  ref="bidWei"
-                  value="{jpy}"
-                )
-                span.input-group-addon.addon-sm 円
-          .column.col-1
+              span.input-group-addon Ether
+        .form-group
+          .col-5
             label.form-label &nbsp;
-            button.btn.btn-primary.btn-sm(onclick="{bid}" disabled="{!enableBid}") 購入する
+          .col-7
+            .input-group
+              span.input-group-addon 約
+              input.form-input.text-right(
+                type="text"
+                disabled
+                ref="bidWei"
+                value="{jpy}"
+              )
+              span.input-group-addon 円
+        .form-group
+          .col-5
+          .col-7
+            button.btn.btn-primary(
+              onclick="{bid}"
+              disabled="{!enableBid}"
+            ) 買い注文を発行
   script.
     this.bidQuantity = 0;
     this.wei = null;
