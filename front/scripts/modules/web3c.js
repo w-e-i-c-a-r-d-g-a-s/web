@@ -215,24 +215,28 @@ const web3c = {
     const askInfoPrices = card.getAskInfoPrices();
     for (let i = 0, len = card.getAskInfoPricesCount().toNumber(); i < len; i++) {
       const priceKey = askInfoPrices[i];
-      const [from, quantity] = card.readAskInfo(priceKey, 0);
-      if(quantity.toNumber() < 1){
-        continue;
-      }
       const price = web3.toDecimal(priceKey);
-      const idx = _.findIndex(askInfo, ['price', price]);
-      if(idx !== -1){
-        askInfo[idx].quantity += quantity.toNumber();
-      } else {
-        askInfo.push({
-          id: i,
-          from,
-          quantity: quantity.toNumber(),
-          price,
-          priceEth: web3.fromWei(price, 'ether'),
-          totalPrice: quantity.mul(price).toNumber(),
-          totalPriceEth: quantity.mul(web3.fromWei(price, 'ether')).toNumber()
-        });
+      const askInfoCount = card.readAskInfoCount(priceKey).toNumber();
+      for (var j = 0, len2 = askInfoCount; j < len2; j++) {
+        const [from, quantity] = card.askInfos(priceKey, j);
+        if(quantity.toNumber() === 0){
+          continue;
+        }
+
+        const idx = _.findIndex(askInfo, ['price', price]);
+        if(idx !== -1){
+          askInfo[idx].quantity += quantity.toNumber();
+        } else {
+          askInfo.push({
+            id: i,
+            from,
+            quantity: quantity.toNumber(),
+            price,
+            priceEth: web3.fromWei(price, 'ether'),
+            totalPrice: quantity.mul(price).toNumber(),
+            totalPriceEth: quantity.mul(web3.fromWei(price, 'ether')).toNumber()
+          });
+        }
       }
     }
     return _.sortBy(askInfo, ['price', 'totalPrice']);
