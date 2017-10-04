@@ -149,24 +149,22 @@ activity
 
     /**
      * 売り注文を取り消し
+     *
+     * @param {string} address ユーザのアドレス
      * @param {number} price 売り注文の金額(wei)
      * @returns {Promise}
      */
-    cancelAsk(price){
-      /*
-      const selectedAsk = this.card.askInfo[askId];
+    cancelAsk(address, price){
       const gas = 1523823;
-      const { address } = this.card;
       const { etherAccount } = this.user;
       return new Promise(async (resolve, reject) => {
         try{
           await this.inputUnlock();
           try{
-            const tx = this.web3c.cancelAsk(etherAccount, address, selectedAsk.id, gas);
+            const tx = this.web3c.cancelAsk(etherAccount, address, price, gas);
             this.opts.obs.trigger('notifySuccess', {
               text: `transaction send! => ${tx}`
             });
-            this.card.askInfo.splice(askId, 1);
             resolve();
           }catch(e){
             this.opts.obs.trigger('notifyError', { text: e.message });
@@ -174,29 +172,6 @@ activity
           }
         }catch(e){
           reject('canceled');
-        }
-      });
-      */
-    }
-
-    /**
-     * パスワード入力モーダルを表示
-     * @returns {Promise}
-     */
-    inputUnlock(){
-      return new Promise(async (resolve, reject) => {
-        // アンロックダイアログを表示
-        const res = await this.unlockAccount();
-        if(res){
-          // アンロック処理後
-          console.log('unlocked!');
-          this.showPasswordModal = false;
-          this.update();
-          resolve();
-        }else{
-          this.showPasswordModal = false;
-          this.update();
-          reject(Error('err'));
         }
       });
     }
@@ -226,6 +201,28 @@ activity
           }
         }catch(e){
           reject();
+        }
+      });
+    }
+
+    /**
+     * パスワード入力モーダルを表示
+     * @returns {Promise}
+     */
+    inputUnlock(){
+      return new Promise(async (resolve, reject) => {
+        // アンロックダイアログを表示
+        const res = await this.unlockAccount();
+        if(res){
+          // アンロック処理後
+          console.log('unlocked!');
+          this.showPasswordModal = false;
+          this.update();
+          resolve();
+        }else{
+          this.showPasswordModal = false;
+          this.update();
+          reject(Error('err'));
         }
       });
     }

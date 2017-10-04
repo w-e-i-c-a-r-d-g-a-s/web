@@ -195,12 +195,12 @@ const web3c = {
    * 売り注文(ask)をキャンセル
    * @param {string} from 送信者
    * @param {string} cardAddress カードアドレス
-   * @param {number} askIndex 買い注文インデックス
+   * @param {number} price 売り注文価格
    * @param {number} gas gas
    */
-  cancelAsk(from, cardAddress, askIndex, gas){
+  cancelAsk(from, cardAddress, price, gas){
     const card = cardContract.at(cardAddress);
-    return card.closeAsk(askIndex, { from, gas });
+    return card.closeAsk(price, { from, gas });
   },
 
   /*

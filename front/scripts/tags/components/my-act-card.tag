@@ -43,7 +43,8 @@ my-act-card
     });
 
     cancelAsk(e){
-      console.log(e.item.o);
+      const { price } = e.item.o;
+      this.opts.cancelAsk(this.opts.card.address, price);
     }
 
     cancelBid(e){
