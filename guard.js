@@ -1,20 +1,10 @@
 const fs = require('fs');
 const _ = require('lodash');
-const Web3 = require('web3')
-const admin = require("firebase-admin");
 const etherSetting = require('./etherSetting.json');
-const serviceAccount = require("./serviceAccountKey.json");
-const { adminAddress, cardMasterAddress, rpcEndpointLocal } = etherSetting;
+const { cardMasterAddress } = etherSetting;
+const helper = require('./guard/helper');
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: etherSetting.firebaseURL || "https://td-demo-5c73d.firebaseio.com"
-});
-const database = admin.database();
-
-const cardMasterSol = require('./contracts/build/contracts/CardMaster.json');
-const cardSol = require('./contracts/build/contracts/Card.json');
-const bidInfoSol = require('./contracts/build/contracts/BidInfo.json');
+const { web3 } = helper;
 
 // signatureはkey-valueの形式にする
 require.extensions['.signatures'] = (module, filename) => {
@@ -26,16 +16,10 @@ require.extensions['.signatures'] = (module, filename) => {
   module.exports = kv;
 };
 
-const backwordNum = 0;
-
-let web3;
-if (typeof web3 !== 'undefined') {
-  web3 = new Web3(web3.currentProvider);
-} else {
-  // set the provider you want from Web3.providers
-  web3 = new Web3(new Web3.providers.HttpProvider(rpcEndpointLocal));
-}
-
+// コントラクトメタデータの取得
+const cardMasterSol = require('./contracts/build/contracts/CardMaster.json');
+const cardSol = require('./contracts/build/contracts/Card.json');
+const bidInfoSol = require('./contracts/build/contracts/BidInfo.json');
 const cardMasterContract = web3.eth.contract(cardMasterSol.abi);
 const cardContract = web3.eth.contract(cardSol.abi);
 const bidInfoContract = web3.eth.contract(bidInfoSol.abi);
@@ -45,73 +29,11 @@ const cardSIG = require('./contracts/build/signatures/Card.signatures');
 
 const cardMasterInstance = cardMasterContract.at(cardMasterAddress);
 
-// メソッド名を返す
-const getMethod = (input, signatures) => {
-  const method = input.slice(0, 10);
-  return signatures[method.slice(2)].replace(/\(.+\)/, '');
-};
-
-// 引数解析
-const getArguments = (input, signatures) => {
-  const method = input.slice(0, 10);
-  const methodDef = signatures[method.slice(2)];
-  // 引数の型を取得
-  const argsText = methodDef.match(/\((.+)\)/);
-  const argsDefs = argsText[1].split(',');
-  if(!argsText){
-    return null;
-  }
-
-  const args = input.slice(10).match(/.{1,64}/g);
-  const argsData = args.map((a, i) => {
-    if(argsDefs[i] === 'address'){
-      // addressの場合40文字の値がそのままアドレスとなる
-      return '0x'+a.slice(24);
-    }
-
-    // 数値の場合
-    if(argsDefs[i].indexOf('uint') === 0){
-      return web3.toDecimal('0x'+a);
-    }
-
-    // 文字列の場合
-    if(argsDefs[i].indexOf('bytes32') === 0){
-      return web3.toAscii('0x'+a).replace(/\u0000/g, '');
-    }
-  });
-  console.log(argsData);
-  return argsData;
-};
-
-
-const setTransactionRecord = (hash, data) => {
-  const documentName = 'transactions';
-  const newHistoryKey = database.ref().child(`${documentName}/${hash}`)
-    .set(data).then(() => {
-      console.log('put history');
-    }).catch((e) => {
-      console.log(e);
-    });
-};
-
-const getStructLogs = (txHash) => {
-  return new Promise((resolve, reject) => {
-    web3.currentProvider.sendAsync({
-      method: "debug_traceTransaction",
-      params: [txHash, {}],
-      jsonrpc: "2.0",
-      id: "2"
-    }, (err, res) => {
-      if(err){
-        reject(new Error(e.message));
-      }
-      resolve(res.result.structLogs);
-    });
-  });
-}
+// ブロックをずらす数
+const backwordNum = 0;
 
 // トランザクション登録
-const setTransaction = (tx) => {
+const putTransaction = (tx) => {
   const receipt = web3.eth.getTransactionReceipt(tx.hash);
   // console.log('---------------------------------------------------');
   // console.log(tx);
@@ -121,7 +43,7 @@ const setTransaction = (tx) => {
   const { gas, gasPrice, hash, value, transactionIndex } = tx;
   const { gasUsed } = receipt;
 
-  getStructLogs(tx.hash).then((structLogs) => {
+  helper.getStructLogs(tx.hash).then((structLogs) => {
     let isSuccess = false
     if (structLogs.length > 0) {
       const lastStatement = structLogs[structLogs.length - 1];
@@ -129,32 +51,31 @@ const setTransaction = (tx) => {
       isSuccess = lastStatement.error === null && lastStatement.op === 'STOP';
       if(!isSuccess){ console.error(lastStatement); }
     }
-
     // カードかカーマスターかの判定
-    if(cardMasterAddress === tx.to){
+    if(cardMasterAddress.toLowerCase() === tx.to.toLowerCase()){
       const txData = {
         gas,
         gasPrice: gasPrice.toNumber(),
         gasUsed,
         value: value.toNumber(),
         inputRaw: tx.input,
-        inputMethod: getMethod(tx.input, cardMasterSIG),
-        inputArgs: getArguments(tx.input, cardMasterSIG),
+        inputMethod: helper.getMethod(tx.input, cardMasterSIG),
+        inputArgs: helper.getArguments(tx.input, cardMasterSIG),
         timestamp,
         // データを時系列昇順で並べられるようにする
         sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex),
         isSuccess
       };
-      console.log('カードマスタに関する実行');
 
       // カードのログデータを作成
       // カードのアドレスがlogsにあるがこれでいいのか・・・？？
       const logData = receipt.logs[0].data;
       const cardAddress = `0x${logData.slice(26)}`;
+      console.log('Card Master Transaction => ', cardAddress);
 
       // 成功していた場合のみ関連するカードに設定
       if(isSuccess){
-        database.ref(`cardActivities/${cardAddress}/txs/${hash}`).set(txData);
+        helper.firebase.putCardActivities(tx.to, hash, txData);
       }
 
       // ユーザに登録
@@ -163,27 +84,23 @@ const setTransaction = (tx) => {
       const owners = card.getOwnerList().filter((address) => {
         return +card.balanceOf(address).toString(10) > 0;
       });
-      const accRef = database.ref().child('accountActivities');
-      const payload = {};
-      owners.forEach((addr) => {
-        payload[`${addr}/txs/${hash}`] = txData;
-      });
-      accRef.update(payload);
+
+      helper.firebase.putAccountActivities(owners, hash, txData);
       // 履歴データに書き込み
-      setTransactionRecord(hash, txData);
+      helper.firebase.putTransactionRecord(hash, txData);
       return;
     }
 
     // TODO ここに書くとちょっと重いかもしれない。。
     const cardAddresses = cardMasterInstance.getCardAddresses();
 
-    if (cardAddresses.indexOf(tx.to) >= 0) {
-      const inputMethod = getMethod(tx.input, cardSIG);
+    if (cardAddresses.indexOf(tx.to.toLowerCase()) >= 0) {
+      const inputMethod = helper.getMethod(tx.input, cardSIG);
+      console.log('Card Transaction => ', inputMethod);
       // 売り注文の取り消しは無視する
       if(inputMethod === 'closeAsk'){
         return;
       }
-      console.log('カードに関する');
       const logData = receipt.logs[0];
       if(logData){
         const logs = logData.data.slice(2).match(/.{1,64}/g);
@@ -192,10 +109,10 @@ const setTransaction = (tx) => {
         const diff = web3.toDecimal(`0x${logs[2]}`);
         const isNegative = web3.toDecimal(`0x${logs[3]}`) === 1;
         console.log(transactionCount, marketPrice, diff, isNegative);
-        const cpRef = database.ref(`cardPrice/${tx.to}/${transactionCount}`)
-        cpRef.set({
-          transactionCount, marketPrice, diff, isNegative
-        });
+        helper.firebase.putCardPrice(tx.to, transactionCount, marketPrice, diff, isNegative);
+        if(/^(acceptAsk|acceptBid)$/.test(inputMethod)){
+          helper.firebase.putCardTrades(tx.to, new Date().getTime(), marketPrice);
+        }
       }
       const txData = {
         gas,
@@ -204,7 +121,7 @@ const setTransaction = (tx) => {
         value: value.toNumber(),
         inputRaw: tx.input,
         inputMethod,
-        inputArgs: getArguments(tx.input, cardSIG),
+        inputArgs: helper.getArguments(tx.input, cardSIG),
         timestamp,
         sortKey: Number.MAX_SAFE_INTEGER - (timestamp + transactionIndex),
         isSuccess
@@ -222,26 +139,21 @@ const setTransaction = (tx) => {
         owners.push(tx.from);
       }
 
-      const accRef = database.ref().child('accountActivities');
-      const payload = {};
-      owners.forEach((addr) => {
-        payload[`${addr}/txs/${hash}`] = txData;
-      });
-      accRef.update(payload);
+      helper.firebase.putAccountActivities(owners, hash, txData);
 
       // 成功していた場合のみ関連するカードに設定
       if(isSuccess){
-        database.ref(`cardActivities/${tx.to}/txs/${hash}`).set(txData);
+        helper.firebase.putCardActivities(tx.to, hash, txData);
       }
       // 履歴データに書き込み
-      setTransactionRecord(hash, txData);
+      helper.firebase.putTransactionRecord(hash, txData);
       return;
     }
   });
 };
 
 /*
-setTransaction({
+Transaction({
   blockHash: '0xb51471f27c760c9c363503883e589d63cd87cbde6fe848740aedb1356f6aac58',
   blockNumber: 32199,
   from: '0x0f6fc65c0a544ecd6f9d31894c8e9e193c3b7fd4',
@@ -255,7 +167,7 @@ setTransaction({
   value: web3.toBigNumber(0)
 });
 
-setTransaction({
+Transaction({
   blockHash: '0x71510047fff611f0ba4e740a4f29a9c817e09a10c34d48793188bc76a2c8cd91',
   blockNumber: 32200,
   from: '0x0f6fc65c0a544ecd6f9d31894c8e9e193c3b7fd4',
@@ -269,8 +181,9 @@ setTransaction({
 });
 */
 
-let filter = web3.eth.filter('latest')
-filter.watch(function(error) {
+const filter = web3.eth.filter('latest');
+
+filter.watch((error) => {
   if (error) {
     console.log(error);
     return;
@@ -280,12 +193,12 @@ filter.watch(function(error) {
   const confirmedBlock = web3.eth.getBlock(web3.eth.blockNumber - backwordNum);
 
   if(confirmedBlock.transactions.length > 0){
-    console.log("block =>", confirmedBlock.hash, confirmedBlock.transactions.length);
+    // console.log("block =>", confirmedBlock.hash, confirmedBlock.transactions.length);
+    confirmedBlock.transactions.forEach((txId) => {
+      const tx = web3.eth.getTransaction(txId);
+      // console.log('putTransaction', tx.hash);
+      putTransaction(tx);
+    })
   }
-  confirmedBlock.transactions.forEach(function(txId) {
-    const tx = web3.eth.getTransaction(txId);
-    console.log('setTransaction', tx.hash);
-    setTransaction(tx);
-  })
 });
 console.log('watch start');
