@@ -18,9 +18,19 @@ home
           .empty-icon
             i.icon.icon-photo(style="font-size: 3rem;")
           h4.empty-title カードがありません
+
+    .columns.mt-2
+      h4 価格ランキング（トップ５）
+      .column.col-12.loading(if="{isLoading}")
+      .column.col-12(if="{rankingCards.length > 0}")
+        .my-cards(each="{card in rankingCards}")
+          card(card="{card}")
+
   script.
+    import _ from 'lodash';
     this.isLoading = true;
     this.cards = [];
+    this.rankingCards = [];
 
     const formatTime = (d) => {
       const _date = `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
@@ -29,6 +39,24 @@ home
     };
 
     this.on('mount', async () => {
+      const cards = this.web3c.getCards();
+      const _rankingCards = _.orderBy(cards, ['currentMarketPrice'], ['desc']).splice(0, 5);
+      const _promises = _rankingCards.map((c) => {
+        return new Promise(async (resolve, reject) => {
+          const cardData = await this.firebase.getCard(c.imageHash);
+          if(cardData){
+            c.imageUrl = cardData.url;
+          }
+          resolve(c);
+        });
+      });
+
+      Promise.all(_promises).then((cards) => {
+        this.rankingCards = cards;
+        this.update();
+      });
+
+
       // 直近取引されたカード
       const latestTradeCards = await this.firebase.getLatestTradeCards();
       if(!latestTradeCards){
