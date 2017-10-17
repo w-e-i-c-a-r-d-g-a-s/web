@@ -11,7 +11,7 @@ price
     import { EVENT } from '../../constants';
     this.etherPrice = 0;
     this.displayUnit = '';
-    this.jpy = 0;
+    this.jpy = '-';
 
     this.obs.on(EVENT.UPDATE_ETH_PRICE, (({ etherJPY }) => {
       this.etherJPY = etherJPY;
@@ -19,23 +19,26 @@ price
       this.update();
     }));
 
-    this.on('update', () => {
+    this.on('mount', () => {
+      this.setVal();
+      this.update();
+    });
+
+    setVal(){
       const { unit, val } = this.opts;
-      this.etherPrice = val;
       switch(unit){
         case 'wei':
           this.etherPrice = this.web3c.web3.fromWei(val, 'ether');
           this.displayUnit = 'Ether';
-          this.updateJPY();
           break;
         case 'ether':
           this.etherPrice = val;
           this.displayUnit = 'Ether';
-          this.updateJPY();
           break;
         default:
+          this.etherPrice = val;
       }
-    });
+    }
 
     updateJPY(){
       if(this.etherJPY){

@@ -3,7 +3,7 @@ mycards
     .columns.mt-2
       .column.col-12(if="{myCards.length > 0}")
         .my-cards(each="{card in myCards}")
-          card(card="{card}" go-detail="{opts.goDetail}")
+          card(card="{card}")
           .detail
             .columns
               .column.col-6 所有枚数

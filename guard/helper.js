@@ -24,7 +24,7 @@ const FB_DOC = {
   CARD_ACTIVITIES: 'cardActivities',
   CARD_PRICE: 'cardPrice',
   ACCOUNT_ACTIVITIES: 'accountActivities',
-  LATEST_CARD_TRADES: 'latestCardTrades'
+  LATEST_TRADE_CARDS: 'latestTradeCards'
 };
 
 // メソッド名を返す
@@ -107,8 +107,8 @@ module.exports = {
       database.ref(`${FB_DOC.CARD_ACTIVITIES}/${cardAddress}/txs/${txHash}`).set(txData);
     },
 
-    putCardTrades: (cardAddress, time, marketPrice) => {
-      database.ref(`${FB_DOC.LATEST_CARD_TRADES}/${cardAddress}`).set({
+    putTradeCards: (cardAddress, time, marketPrice) => {
+      database.ref(`${FB_DOC.LATEST_TRADE_CARDS}/${cardAddress}`).set({
         time, marketPrice
       });
     },

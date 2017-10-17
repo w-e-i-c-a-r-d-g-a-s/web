@@ -111,7 +111,7 @@ const putTransaction = (tx) => {
         console.log(transactionCount, marketPrice, diff, isNegative);
         helper.firebase.putCardPrice(tx.to, transactionCount, marketPrice, diff, isNegative);
         if(/^(acceptAsk|acceptBid)$/.test(inputMethod)){
-          helper.firebase.putCardTrades(tx.to, new Date().getTime(), marketPrice);
+          helper.firebase.putTradeCards(tx.to, new Date().getTime(), marketPrice);
         }
       }
       const txData = {

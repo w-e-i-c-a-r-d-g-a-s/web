@@ -141,7 +141,6 @@ export default {
       this.setTags(card.tags, id);
     },
 
-
     /**
      * タグの一覧を取得
      * TODO 全件取得するのでそのうち遅くなるのでは？
@@ -185,6 +184,19 @@ export default {
     getCard(id){
       return new Promise((resolve, reject) => {
         firebase.database().ref('cards/' + id ).once('value')
+          .then((ss) => {
+            resolve(ss.val());
+          });
+      });
+    },
+
+    // 直近の取引5件分を取得
+    getLatestTradeCards(){
+      return new Promise((resolve, reject) => {
+        firebase.database().ref('latestTradeCards')
+          .orderByChild('time')
+          .limitToLast(5)
+          .once('value')
           .then((ss) => {
             resolve(ss.val());
           });
